@@ -86,10 +86,10 @@ export const getRoleColor = (role) => {
 // Reputation utilities
 export const getReputationLevel = (score) => {
   if (score >= 5000) return { level: 'Super Citizen', color: 'text-purple-600' };
-  if (score >= 2500) return { level: 'Civic Hero', color: 'text-red-600' };
+  if (score >= 2500) return { level: 'Naagrik Hero', color: 'text-red-600' };
   if (score >= 1000) return { level: 'Community Leader', color: 'text-orange-600' };
   if (score >= 500) return { level: 'Change Maker', color: 'text-yellow-600' };
-  if (score >= 250) return { level: 'Civic Champion', color: 'text-green-600' };
+  if (score >= 250) return { level: 'Naagrik Champion', color: 'text-green-600' };
   if (score >= 100) return { level: 'Community Helper', color: 'text-blue-600' };
   if (score >= 50) return { level: 'Active Citizen', color: 'text-indigo-600' };
   return { level: 'New Reporter', color: 'text-gray-600' };

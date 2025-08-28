@@ -89,7 +89,7 @@ export const useAuthStore = create(
 
       // Initialize auth state from token
       initializeAuth: async () => {
-        const token = typeof window !== 'undefined' ? localStorage.getItem('civicconnect_token') : null;
+        const token = typeof window !== 'undefined' ? localStorage.getItem('naagrik_token') : null;
         if (!token) return;
 
         set({ isLoading: true });
@@ -116,7 +116,7 @@ export const useAuthStore = create(
       },
     }),
     {
-      name: 'civicconnect-auth',
+      name: 'naagrik-auth',
       partialize: (state) => ({ 
         user: state.user, 
         token: state.token, 

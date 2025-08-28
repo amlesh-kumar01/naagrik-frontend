@@ -1,8 +1,8 @@
 {
-  "name": "civicconnect-frontend",
+  "name": "naagrik-frontend",
   "version": "1.0.0",
   "private": true,
-  "description": "CivicConnect - Civic Engagement Platform Frontend",
+  "description": "Naagrik - Civic Engagement Platform Frontend",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

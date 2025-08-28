@@ -45,7 +45,7 @@ const Footer = () => {
               <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
                 <span className="text-[#3B38A0] font-bold text-lg">C</span>
               </div>
-              <span className="text-xl font-bold">CivicConnect</span>
+              <span className="text-xl font-bold">Naagrik</span>
             </div>
             <p className="text-white/80 mb-6">
               Empowering communities through civic engagement. Report issues, track progress, and make your voice heard.
@@ -55,7 +55,7 @@ const Footer = () => {
             <div className="space-y-2 text-sm text-white/70">
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4 text-[#B2B0E8]" />
-                <span>support@civicconnect.com</span>
+                <span>support@naagrik.com</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4 text-[#B2B0E8]" />
@@ -122,7 +122,7 @@ const Footer = () => {
             </div>
 
             <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6 text-sm text-white/70">
-              <span>© {currentYear} CivicConnect. All rights reserved.</span>
+              <span>© {currentYear} Naagrik. All rights reserved.</span>
               <div className="flex space-x-4">
                 <Link href="/privacy" className="hover:text-white transition-colors duration-200 hover:underline">
                   Privacy

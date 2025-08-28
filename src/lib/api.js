@@ -18,21 +18,21 @@ export { stewardAPI };
 // Utility functions (preserved from original)
 export const setAuthToken = (token) => {
   if (typeof window !== 'undefined') {
-    localStorage.setItem('civicconnect_token', token);
+    localStorage.setItem('naagrik_token', token);
   }
 };
 
 export const getAuthToken = () => {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem('civicconnect_token');
+    return localStorage.getItem('naagrik_token');
   }
   return null;
 };
 
 export const removeAuthToken = () => {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem('civicconnect_token');
-    localStorage.removeItem('civicconnect_user');
+    localStorage.removeItem('naagrik_token');
+    localStorage.removeItem('naagrik_user');
   }
 };
 

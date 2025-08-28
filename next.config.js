@@ -5,7 +5,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: ['localhost', 'civicconnect.s3.amazonaws.com'],
+    domains: ['localhost', 'naagrik.s3.amazonaws.com'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -20,7 +20,7 @@ const nextConfig = {
   },
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
-    NEXT_PUBLIC_APP_NAME: 'CivicConnect',
+    NEXT_PUBLIC_APP_NAME: 'Naagrik',
   },
   experimental: {
     optimizePackageImports: ['lucide-react'],

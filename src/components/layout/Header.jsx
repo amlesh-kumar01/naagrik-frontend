@@ -73,7 +73,7 @@ const Header = () => {
               <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
                 <Users className="h-6 w-6 text-[#3B38A0]" />
               </div>
-              <span className="text-xl font-bold text-white">CivicConnect</span>
+              <span className="text-xl font-bold text-white">Naagrik</span>
             </Link>
           </div>
 

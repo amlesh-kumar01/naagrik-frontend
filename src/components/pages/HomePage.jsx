@@ -180,7 +180,7 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-[#1A2A80] mb-4">
-              How CivicConnect Works
+              How Naagrik Works
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Our platform makes it easy to report issues, track progress, and collaborate 
@@ -309,7 +309,7 @@ const HomePage = () => {
                 className="bg-white text-[#3B38A0] hover:bg-white/90 px-8 py-4 text-lg font-medium shadow-xl transition-all duration-200 transform hover:scale-105"
                 style={{ boxShadow: '0 8px 25px rgba(255, 255, 255, 0.3)' }}
               >
-                Join CivicConnect Today
+                Join Naagrik Today
                 <ArrowRight className="h-6 w-6 ml-2" />
               </Button>
             </Link>

@@ -21,7 +21,7 @@ export default function RootLayout({ children }) {
   const isPublicRoute = publicRoutes.includes(router.pathname);
 
   if (loading) {
-    return <LoadingPage message="Loading CivicConnect..." />;
+    return <LoadingPage message="Loading Naagrik..." />;
   }
 
   return (

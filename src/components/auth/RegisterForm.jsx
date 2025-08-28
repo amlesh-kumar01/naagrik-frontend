@@ -107,7 +107,7 @@ const RegisterForm = () => {
             </svg>
           </div>
           <h2 className="text-3xl font-bold text-white mb-2">
-            Join CivicConnect
+            Join Naagrik
           </h2>
           <p className="text-lg text-white/90">
             Create your account and start making a difference in your community

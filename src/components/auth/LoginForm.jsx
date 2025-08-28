@@ -88,7 +88,7 @@ const LoginForm = () => {
             Welcome Back
           </h2>
           <p className="text-lg text-white/90">
-            Sign in to your CivicConnect account
+            Sign in to your Naagrik account
           </p>
         </div>
 

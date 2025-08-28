@@ -36,7 +36,7 @@ const Header = () => {
 
   const navigationItems = [
     { name: 'Home', href: '/', icon: Home },
-    { name: 'Report Issue', href: '/report/add', icon: Plus },
+    { name: 'Report Issue', href: '/report', icon: Plus },
     { name: 'Map View', href: '/map', icon: MapPin },
     { name: 'Emergency', href: '/emergency', icon: AlertTriangle },
   ];

@@ -18,7 +18,7 @@ export const useAuthStore = create(
         try {
           const response = await authAPI.login(credentials);
           // Backend returns { success: true, token: "...", user: {...} }
-          const { user, token } = response;
+          const { user, token } = response.data;
           
           setAuthToken(token);
           set({ 

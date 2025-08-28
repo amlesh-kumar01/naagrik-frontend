@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import ReportIssueModal from '@/components/features/ReportIssueModal';
+import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, AlertTriangle, Clock, MapPin, Camera, Phone, Shield } from 'lucide-react';
 
 const ReportIssuePage = () => {
-  const [showModal, setShowModal] = useState(true);
+  const router = useRouter();
 
   const reportingTips = [
     {
@@ -111,7 +111,7 @@ const ReportIssuePage = () => {
           <div className="text-center mb-12">
             <Button
               size="lg"
-              onClick={() => setShowModal(true)}
+              onClick={() => router.push('/report/add')}
               className="px-8 py-4 text-lg font-medium text-white shadow-xl transition-all duration-200 transform hover:scale-105"
               style={{
                 background: 'linear-gradient(135deg, #3B38A0 0%, #1A2A80 100%)',
@@ -256,12 +256,6 @@ const ReportIssuePage = () => {
             </div>
           </div>
         </main>
-
-        {/* Report Modal */}
-        <ReportIssueModal
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-        />
       </div>
     </ProtectedRoute>
   );

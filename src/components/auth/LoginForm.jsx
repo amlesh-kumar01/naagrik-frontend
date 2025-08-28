@@ -18,6 +18,7 @@ const LoginForm = () => {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   
   const { login } = useAuthStore();
   const router = useRouter();
@@ -28,6 +29,7 @@ const LoginForm = () => {
       [e.target.name]: e.target.value,
     });
     setError('');
+    setSuccessMessage('');
   };
 
   const handleSubmit = async (e) => {
@@ -62,7 +64,10 @@ const LoginForm = () => {
       });
       
       if (result.success) {
-        router.push('/');
+        setSuccessMessage('Login successful! Redirecting to home page...');
+        setTimeout(() => {
+          router.push('/');
+        }, 2000);
       } else {
         setError(result.error || 'Login failed. Please try again.');
       }
@@ -101,6 +106,12 @@ const LoginForm = () => {
               {error && (
                 <Alert variant="destructive" className="border-red-200 bg-red-50">
                   <AlertDescription className="text-red-800">{error}</AlertDescription>
+                </Alert>
+              )}
+
+              {successMessage && (
+                <Alert className="border-green-200 bg-green-50">
+                  <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
                 </Alert>
               )}
 

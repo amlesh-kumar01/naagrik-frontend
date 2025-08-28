@@ -31,7 +31,9 @@ import {
   Star,
   Send,
   Heart,
-  Flag
+  Flag,
+  Maximize,
+  Minimize
 } from 'lucide-react';
 
 const IssueDetailPage = ({ issueId }) => {
@@ -52,6 +54,7 @@ const IssueDetailPage = ({ issueId }) => {
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [showAllMedia, setShowAllMedia] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     if (issueId) {

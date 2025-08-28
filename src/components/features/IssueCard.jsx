@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +14,8 @@ import {
   MoreHorizontal,
   Camera,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  ExternalLink
 } from 'lucide-react';
 import { 
   getStatusColor, 
@@ -31,9 +33,18 @@ const IssueCard = ({
   compact = false,
   className = '' 
 }) => {
+  const router = useRouter();
   const [isVoting, setIsVoting] = useState(false);
   const [currentVotes, setCurrentVotes] = useState(issue.votes_count || 0);
   const [hasVoted, setHasVoted] = useState(issue.user_has_voted || false);
+
+  const handleCardClick = (e) => {
+    // Don't navigate if clicking on buttons or links
+    if (e.target.closest('button') || e.target.closest('a')) {
+      return;
+    }
+    router.push(`/issues/${issue.id}`);
+  };
 
   const handleVote = async () => {
     if (isVoting) return;
@@ -80,21 +91,32 @@ const IssueCard = ({
 
   if (compact) {
     return (
-      <Card className={`hover:shadow-md transition-shadow ${className}`}>
+      <Card 
+        className={`hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.01] ${className}`}
+        onClick={handleCardClick}
+      >
         <CardContent className="p-4">
           <div className="flex items-start space-x-3">
-            {/* Status Indicator */}
-            <div className={`w-3 h-3 rounded-full mt-2 ${getStatusBadgeColor(issue.status)}`} />
+            {/* Thumbnail */}
+            {issue.media_url && issue.media_type?.startsWith('image/') ? (
+              <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                <img
+                  src={issue.media_url}
+                  alt={issue.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className={`w-3 h-3 rounded-full mt-2 ${getStatusBadgeColor(issue.status)}`} />
+            )}
             
             {/* Content */}
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <Link href={`/issues/${issue.id}`}>
-                    <h3 className="font-medium text-gray-900 hover:text-blue-600 line-clamp-1">
-                      {issue.title}
-                    </h3>
-                  </Link>
+                  <h3 className="font-medium text-gray-900 hover:text-blue-600 line-clamp-1">
+                    {issue.title}
+                  </h3>
                   <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                     {issue.description}
                   </p>
@@ -128,7 +150,10 @@ const IssueCard = ({
   }
 
   return (
-    <Card className={`hover:shadow-lg transition-all duration-200 ${className}`}>
+    <Card 
+      className={`hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02] ${className}`}
+      onClick={handleCardClick}
+    >
       <CardContent className="p-6">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
@@ -146,36 +171,38 @@ const IssueCard = ({
               <span className="text-sm text-gray-500">#{issue.id}</span>
             </div>
             
-            <Link href={`/issues/${issue.id}`}>
-              <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 line-clamp-2 mb-2">
-                {issue.title}
-              </h3>
-            </Link>
+            <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 line-clamp-2 mb-2">
+              {issue.title}
+            </h3>
             
             <p className="text-gray-600 line-clamp-3">
               {issue.description}
             </p>
           </div>
-          
-          <Button variant="ghost" size="icon" className="ml-2">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
         </div>
 
         {/* Media */}
         {issue.media_url && (
           <div className="mb-4">
-            <div className="relative rounded-lg overflow-hidden bg-gray-100">
+            <div className="relative rounded-lg overflow-hidden bg-gray-100 group">
               {issue.media_type?.startsWith('image/') ? (
                 <img
                   src={issue.media_url}
                   alt={issue.title}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-200"
                 />
               ) : (
-                <div className="w-full h-48 flex items-center justify-center">
-                  <Camera className="h-8 w-8 text-gray-400" />
-                  <span className="ml-2 text-gray-500">Media attachment</span>
+                <div className="w-full h-48 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+                  <div className="text-center">
+                    <Camera className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                    <span className="text-gray-500 text-sm">Media attachment</span>
+                  </div>
+                </div>
+              )}
+              {/* Optional overlay with media count if multiple images */}
+              {issue.media_count > 1 && (
+                <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                  +{issue.media_count - 1} more
                 </div>
               )}
             </div>
@@ -233,9 +260,10 @@ const IssueCard = ({
             )}
             
             <Link href={`/issues/${issue.id}`}>
-              <Button variant="outline" size="sm" className="flex items-center space-x-1">
+              <Button variant="outline" size="sm" className="flex items-center space-x-1 hover:bg-blue-50 hover:border-blue-200">
                 <MessageCircle className="h-4 w-4" />
                 <span>{issue.comments_count || 0}</span>
+                <span className="hidden sm:inline">Comments</span>
               </Button>
             </Link>
             

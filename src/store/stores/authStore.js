@@ -89,11 +89,24 @@ export const useAuthStore = create(
 
       // Initialize auth state from token
       initializeAuth: async () => {
-        const token = typeof window !== 'undefined' ? localStorage.getItem('naagrik_token') : null;
+        // Get token from the persisted state or localStorage
+        const persistedData = typeof window !== 'undefined' ? localStorage.getItem('naagrik-auth') : null;
+        let token = null;
+
+        if (persistedData) {
+          try {
+            const parsed = JSON.parse(persistedData);
+            token = parsed.state?.token;
+          } catch (e) {
+            console.error('Failed to parse persisted auth data:', e);
+          }
+        }
+
         if (!token) return;
 
         set({ isLoading: true });
         try {
+          setAuthToken(token);
           const response = await authAPI.getMe();
           // Backend returns { success: true, user: {...} }
           const user = response.user || response.data?.user;
@@ -105,6 +118,7 @@ export const useAuthStore = create(
             isLoading: false 
           });
         } catch (error) {
+          console.error('Failed to initialize auth:', error);
           removeAuthToken();
           set({ 
             user: null, 
@@ -122,6 +136,14 @@ export const useAuthStore = create(
         token: state.token, 
         isAuthenticated: state.isAuthenticated 
       }),
+      onRehydrateStorage: () => (state) => {
+        // After rehydration, if we have a token, set the auth token for API calls
+        if (state?.token) {
+          setAuthToken(state.token);
+          // Optionally verify the token is still valid
+          state.initializeAuth?.();
+        }
+      },
     }
   )
 );

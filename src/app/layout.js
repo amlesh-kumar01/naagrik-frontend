@@ -7,7 +7,7 @@ import { Toaster } from 'react-hot-toast';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'CivicConnect - Building Better Communities',
+  title: 'Naagrik - Building Better Communities',
   description: 'A platform for civic engagement and community issue resolution',
   keywords: 'civic engagement, community, issues, reporting, local government',
 };

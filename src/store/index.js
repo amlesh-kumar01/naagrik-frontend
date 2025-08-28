@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { authAPI, setAuthToken, removeAuthToken, issueAPI, uploadAPI } from '../lib/api';
+import { authAPI, setAuthToken, removeAuthToken, issueAPI, uploadAPI, commentAPI } from '../lib/api';
 
 // Auth Store
 export const useAuthStore = create(
@@ -18,7 +18,8 @@ export const useAuthStore = create(
         try {
           const response = await authAPI.login(credentials);
           // Backend returns { success: true, token: "...", user: {...} }
-          const { user, token } = response.data;
+          const { user, token } = response;
+          
           setAuthToken(token);
           set({ 
             user, 
@@ -309,11 +310,11 @@ export const useIssuesStore = create((set, get) => ({
       // Backend returns { success: true, data: { issues: [...], pagination: {...} } }
       // Axios interceptor already extracts response.data
       set({ 
-        issues: response.data?.issues || response.issues || [],
+        issues: response.data || [],
         pagination: response.data?.pagination || response.pagination || {},
         isLoading: false,
         error: null
-      });
+      }); 
       
       return response.data || response;
     } catch (error) {
@@ -336,8 +337,12 @@ export const useIssuesStore = create((set, get) => ({
       // Axios interceptor already extracts response.data
       const issue = response.issue || response.data?.issue || response;
       
+      // Set comments from the issue data if available
+      const comments = issue.comments || [];
+      
       set({ 
         currentIssue: issue,
+        comments: comments,
         isLoading: false,
         error: null
       });
@@ -378,4 +383,34 @@ export const useIssuesStore = create((set, get) => ({
   },
 
   clearError: () => set({ error: null }),
+
+  // Create comment
+  createComment: async (issueId, content) => {
+    try {
+      const response = await commentAPI.createComment(issueId, content);
+      const newComment = response.comment || response.data?.comment || response;
+      
+      // Add comment to current comments list
+      set(state => ({
+        comments: [...state.comments, newComment]
+      }));
+      
+      return newComment;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Fetch comments for an issue
+  fetchComments: async (issueId) => {
+    try {
+      const response = await commentAPI.getComments(issueId);
+      const comments = response.comments || response.data?.comments || response;
+      
+      set({ comments: comments });
+      return comments;
+    } catch (error) {
+      throw error;
+    }
+  },
 }));

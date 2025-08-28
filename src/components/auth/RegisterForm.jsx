@@ -21,6 +21,7 @@ const RegisterForm = () => {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   
   const { register } = useAuthStore();
   const router = useRouter();
@@ -84,7 +85,10 @@ const RegisterForm = () => {
       });
       
       if (result.success) {
-        router.push('/');
+        setSuccessMessage('Registration successful! Redirecting to home page...');
+        setTimeout(() => {
+          router.push('/');
+        }, 2000);
       } else {
         setErrors({ general: result.error || 'Registration failed. Please try again.' });
       }
@@ -123,6 +127,12 @@ const RegisterForm = () => {
               {errors.general && (
                 <Alert variant="destructive" className="border-red-200 bg-red-50">
                   <AlertDescription className="text-red-800">{errors.general}</AlertDescription>
+                </Alert>
+              )}
+
+              {successMessage && (
+                <Alert className="border-green-200 bg-green-50">
+                  <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
                 </Alert>
               )}
 

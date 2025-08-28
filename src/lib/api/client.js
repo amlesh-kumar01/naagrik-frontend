@@ -15,7 +15,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('civicconnect_token');
+      const token = localStorage.getItem('naagrik_token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -64,8 +64,8 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Token expired or invalid
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('civicconnect_token');
-        localStorage.removeItem('civicconnect_user');
+        localStorage.removeItem('naagrik_token');
+        localStorage.removeItem('naagrik_user');
         window.location.href = '/login';
       }
     }

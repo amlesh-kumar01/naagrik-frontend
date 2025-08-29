@@ -23,7 +23,7 @@ export const useAuthStore = create(
           
           setAuthToken(token);
           
-          // Store rememberMe preference for persistence configuration
+          // Store auth data
           const authData = { 
             user, 
             token, 
@@ -36,12 +36,20 @@ export const useAuthStore = create(
           
           set(authData);
           
-          // If remember me is not checked, store tokens in sessionStorage instead of localStorage
-          if (!rememberMe && typeof window !== 'undefined') {
-            // Move tokens to sessionStorage for shorter persistence
-            const persistedData = localStorage.getItem('naagrik-auth');
-            if (persistedData) {
-              sessionStorage.setItem('naagrik-auth', persistedData);
+          // Handle storage based on rememberMe preference
+          if (typeof window !== 'undefined') {
+            const storeData = JSON.stringify({
+              state: authData,
+              version: 0
+            });
+            
+            if (rememberMe) {
+              // Store in localStorage for persistent login
+              localStorage.setItem('naagrik-auth', storeData);
+              sessionStorage.removeItem('naagrik-auth');
+            } else {
+              // Store in sessionStorage for session-only login
+              sessionStorage.setItem('naagrik-auth', storeData);
               localStorage.removeItem('naagrik-auth');
             }
           }
@@ -66,14 +74,31 @@ export const useAuthStore = create(
           const { user, token, refreshToken } = response.data;
           
           setAuthToken(token);
-          set({ 
+          
+          // For registration, default to remembering the user (you can modify this behavior)
+          const rememberMe = true;
+          const authData = { 
             user, 
             token, 
             refreshToken,
             isAuthenticated: true, 
             isLoading: false,
-            error: null 
-          });
+            error: null,
+            rememberMe
+          };
+          
+          set(authData);
+          
+          // Handle storage - default to localStorage for registration
+          if (typeof window !== 'undefined') {
+            const storeData = JSON.stringify({
+              state: authData,
+              version: 0
+            });
+            
+            localStorage.setItem('naagrik-auth', storeData);
+            sessionStorage.removeItem('naagrik-auth');
+          }
           
           return { success: true, data: { user, token, refreshToken } };
         } catch (error) {
@@ -231,47 +256,6 @@ export const useAuthStore = create(
         isAuthenticated: state.isAuthenticated,
         rememberMe: state.rememberMe
       }),
-      storage: {
-        getItem: (name) => {
-          // Try localStorage first, then sessionStorage
-          if (typeof window === 'undefined') return null;
-          
-          const localStorage_data = localStorage.getItem(name);
-          if (localStorage_data) return localStorage_data;
-          
-          const sessionStorage_data = sessionStorage.getItem(name);
-          return sessionStorage_data || null;
-        },
-        setItem: (name, value) => {
-          if (typeof window === 'undefined') return;
-          
-          try {
-            const data = JSON.parse(value);
-            const shouldRemember = data?.state?.rememberMe;
-            
-            if (shouldRemember) {
-              // Store in localStorage for persistent login
-              localStorage.setItem(name, value);
-              // Remove from sessionStorage if it exists
-              sessionStorage.removeItem(name);
-            } else {
-              // Store in sessionStorage for session-only login
-              sessionStorage.setItem(name, value);
-              // Remove from localStorage if it exists
-              localStorage.removeItem(name);
-            }
-          } catch (error) {
-            console.error('Error storing auth data:', error);
-            // Fallback to localStorage
-            localStorage.setItem(name, value);
-          }
-        },
-        removeItem: (name) => {
-          if (typeof window === 'undefined') return;
-          localStorage.removeItem(name);
-          sessionStorage.removeItem(name);
-        }
-      },
       onRehydrateStorage: () => (state) => {
         // After rehydration, if we have a token, set the auth token for API calls
         if (state?.token) {

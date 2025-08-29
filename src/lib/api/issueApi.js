@@ -3,16 +3,15 @@ import api from './client';
 // Issue API calls (exactly from original api.js)
 export const issueAPI = {
   createIssue: (issueData) => {
-    // Check if issueData is FormData (contains media files)
+
     if (issueData instanceof FormData) {
-      console.log('Sending FormData with entries:');
-      for (let [key, value] of issueData.entries()) {
-        console.log(`${key}:`, value);
-      }
-      // Let axios handle the Content-Type header automatically for FormData
-      return api.post('/issues', issueData);
+
+      return api.post('/issues', issueData, {
+        headers: {
+          'Content-Type': undefined, 
+        },
+      });
     } else {
-      // Map frontend data to backend expected format for regular object data
       const backendData = {
         title: issueData.title,
         description: issueData.description,

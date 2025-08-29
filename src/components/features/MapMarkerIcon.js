@@ -1,4 +1,9 @@
-import L from 'leaflet';
+let L = null;
+
+// Only import Leaflet on client side
+if (typeof window !== 'undefined') {
+  L = require('leaflet');
+}
 
 const markerHtmlStyles = `
   background-color: #3B38A0;
@@ -13,10 +18,14 @@ const markerHtmlStyles = `
   font-size: 1.25rem;
 `;
 
-export const customMarkerIcon = (label = '') => L.divIcon({
-  className: '',
-  html: `<div style="${markerHtmlStyles}">${label || '📍'}</div>`,
-  iconSize: [40, 40],
-  iconAnchor: [20, 40],
-  popupAnchor: [0, -40],
-});
+export const customMarkerIcon = (label = '') => {
+  if (!L) return null;
+  
+  return L.divIcon({
+    className: '',
+    html: `<div style="${markerHtmlStyles}">${label || '📍'}</div>`,
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -40],
+  });
+};

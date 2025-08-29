@@ -1,16 +1,55 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import { customMarkerIcon } from './MapMarkerIcon';
+import dynamic from 'next/dynamic';
 import { Button } from '../ui/button';
+
+// Dynamically import Leaflet components with no SSR
+const MapContainer = dynamic(
+  () => import('react-leaflet').then((mod) => mod.MapContainer),
+  { ssr: false }
+);
+
+const TileLayer = dynamic(
+  () => import('react-leaflet').then((mod) => mod.TileLayer),
+  { ssr: false }
+);
+
+const Marker = dynamic(
+  () => import('react-leaflet').then((mod) => mod.Marker),
+  { ssr: false }
+);
+
+const Popup = dynamic(
+  () => import('react-leaflet').then((mod) => mod.Popup),
+  { ssr: false }
+);
+
+const useMapEvents = dynamic(
+  () => import('react-leaflet').then((mod) => mod.useMapEvents),
+  { ssr: false }
+);
+
+// Import Leaflet CSS and custom marker icon dynamically
+let L = null;
+let customMarkerIcon = null;
+
+if (typeof window !== 'undefined') {
+  import('leaflet/dist/leaflet.css');
+  L = require('leaflet');
+  
+  // Import custom marker icon
+  const { customMarkerIcon: markerIcon } = require('./MapMarkerIcon');
+  customMarkerIcon = markerIcon;
+}
 
 const DEFAULT_CENTER = { lat: 28.6139, lng: 77.2090 }; // Delhi as fallback
 
-function LocationMarker({ setLocation, currentLocation, selectableLocation }) {
-  useMapEvents({
+function LocationMarker({ setLocation, currentLocation, selectableLocation, useMapEvents }) {
+  if (!useMapEvents) return null;
+  
+  const MapEvents = useMapEvents;
+  MapEvents({
     click(e) {
       if (selectableLocation) {
         setLocation(e.latlng);
@@ -18,7 +57,7 @@ function LocationMarker({ setLocation, currentLocation, selectableLocation }) {
     },
   });
 
-  return currentLocation ? (
+  return currentLocation && customMarkerIcon ? (
     <Marker position={currentLocation} icon={customMarkerIcon('📍')}>
       <Popup>
         <div className="text-center">
@@ -44,9 +83,12 @@ const ModernMapView = ({
   const [currentLocation, setCurrentLocation] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedIssue, setSelectedIssue] = useState(null);
+  const [isClient, setIsClient] = useState(false);
   const mapRef = useRef();
 
   const getIssueMarkerIcon = (issue) => {
+    if (!customMarkerIcon) return null;
+    
     let emoji = '📍';
     let color = '#3B38A0';
     
@@ -65,7 +107,11 @@ const ModernMapView = ({
   };
 
   useEffect(() => {
-    if (showCurrentLocation && navigator.geolocation) {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (isClient && showCurrentLocation && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           setCurrentLocation({
@@ -77,7 +123,19 @@ const ModernMapView = ({
         { enableHighAccuracy: true }
       );
     }
-  }, [showCurrentLocation]);
+  }, [isClient, showCurrentLocation]);
+
+  // Don't render on server side
+  if (!isClient) {
+    return (
+      <div className="w-full rounded-lg overflow-hidden border shadow-lg flex items-center justify-center" style={{ height }}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3B38A0] mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading map...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full rounded-lg overflow-hidden border shadow-lg" style={{ height }}>
@@ -102,6 +160,7 @@ const ModernMapView = ({
             }} 
             currentLocation={selectableLocation ? selectedLocation : currentLocation} 
             selectableLocation={selectableLocation}
+            useMapEvents={useMapEvents}
           />
         )}
         {issues.map((issue) => (

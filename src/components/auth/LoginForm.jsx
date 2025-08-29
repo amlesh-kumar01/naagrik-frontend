@@ -19,6 +19,7 @@ const LoginForm = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   
   const { login } = useAuthStore();
   const router = useRouter();
@@ -61,7 +62,7 @@ const LoginForm = () => {
       const result = await login({
         email: formData.email.trim(),
         password: formData.password,
-      });
+      }, rememberMe);
       
       if (result.success) {
         setSuccessMessage('Login successful! Redirecting to home page...');
@@ -153,6 +154,8 @@ const LoginForm = () => {
                     id="remember-me"
                     name="remember-me"
                     type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
                     className="h-4 w-4 text-[#3B38A0] focus:ring-[#7A85C1] border-gray-300 rounded"
                   />
                   <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">

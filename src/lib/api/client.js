@@ -50,7 +50,7 @@ api.interceptors.response.use(
     }
     return response.data;
   },
-  (error) => {
+  async (error) => {
     // Debug logging
     if (process.env.NODE_ENV === 'development') {
       console.error('API Error:', {
@@ -60,13 +60,43 @@ api.interceptors.response.use(
       });
     }
     
-    // Handle common errors
-    if (error.response?.status === 401) {
-      // Token expired or invalid
+    const originalRequest = error.config;
+    
+    // Handle 401 errors with token refresh
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
       if (typeof window !== 'undefined') {
+        try {
+          // Try to get refresh token from auth store (check both localStorage and sessionStorage)
+          const persistedAuth = localStorage.getItem('naagrik-auth') || sessionStorage.getItem('naagrik-auth');
+          if (persistedAuth) {
+            const { state } = JSON.parse(persistedAuth);
+            if (state?.refreshToken) {
+              // Import auth store dynamically to avoid circular dependency
+              const { useAuthStore } = await import('../../store/stores/authStore');
+              const refreshResult = await useAuthStore.getState().refreshAuthToken();
+              
+              if (refreshResult.success) {
+                // Retry original request with new token
+                originalRequest.headers.Authorization = `Bearer ${refreshResult.token}`;
+                return api(originalRequest);
+              }
+            }
+          }
+        } catch (refreshError) {
+          console.error('Token refresh failed:', refreshError);
+        }
+        
+        // If refresh fails or no refresh token, redirect to login
         localStorage.removeItem('naagrik_token');
-        localStorage.removeItem('naagrik_user');
-        window.location.href = '/login';
+        localStorage.removeItem('naagrik-auth');
+        sessionStorage.removeItem('naagrik-auth');
+        
+        // Only redirect if we're not already on the login page
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
       }
     }
     

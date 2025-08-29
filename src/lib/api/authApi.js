@@ -17,5 +17,11 @@ export const authAPI = {
     return api.post('/auth/login', credentials);
   },
   getMe: () => api.get('/auth/me'),
-  refreshToken: () => api.post('/auth/refresh'),
+  refreshToken: (refreshToken) => {
+    if (!refreshToken) {
+      throw new Error('Refresh token is required');
+    }
+    return api.post('/auth/refresh', { refreshToken });
+  },
+  logout: (refreshToken) => api.post('/auth/logout', refreshToken ? { refreshToken } : {}),
 };

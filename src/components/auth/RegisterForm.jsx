@@ -15,7 +15,6 @@ const RegisterForm = () => {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
-    phone: '',
     password: '',
     confirmPassword: '',
   });
@@ -50,9 +49,6 @@ const RegisterForm = () => {
     const emailError = getValidationError('email', formData.email);
     if (emailError) newErrors.email = emailError;
 
-    const phoneError = getValidationError('phone', formData.phone);
-    if (phoneError) newErrors.phone = phoneError;
-
     const passwordError = getValidationError('password', formData.password);
     if (passwordError) newErrors.password = passwordError;
 
@@ -80,7 +76,6 @@ const RegisterForm = () => {
       const result = await register({
         fullName: formData.fullName.trim(),
         email: formData.email.trim(),
-        phone: formData.phone.trim(),
         password: formData.password,
       });
       
@@ -174,24 +169,7 @@ const RegisterForm = () => {
                 )}
               </div>
 
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-[#1A2A80] mb-2">
-                  Phone Number
-                </label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  required
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="Enter your phone number"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7A85C1] focus:border-[#7A85C1] transition-colors duration-200"
-                />
-                {errors.phone && (
-                  <p className="mt-2 text-sm text-red-600">{errors.phone}</p>
-                )}
-              </div>
+
 
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-[#1A2A80] mb-2">

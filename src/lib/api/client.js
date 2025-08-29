@@ -11,13 +11,25 @@ const api = axios.create({
   },
 });
 
+// Helper function to validate auth data
+const validateAuthData = (data) => {
+  return data && 
+         typeof data === 'string' && 
+         data !== '[object Object]' && 
+         !data.startsWith('[object');
+};
+
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('naagrik-token');
-      if (token) {
+      if (validateAuthData(token)) {
         config.headers.Authorization = `Bearer ${token}`;
+      } else if (token) {
+        // Clean up corrupted token
+        console.warn('Removing corrupted auth token');
+        localStorage.removeItem('naagrik-token');
       }
     }
     
@@ -70,19 +82,31 @@ api.interceptors.response.use(
         try {
           // Try to get refresh token from auth store
           const persistedAuth = localStorage.getItem('naagrik-auth') || sessionStorage.getItem('naagrik-auth');
-          if (persistedAuth) {
-            const { state } = JSON.parse(persistedAuth);
-            if (state?.refreshToken) {
-              // Import auth store dynamically to avoid circular dependency
-              const { useAuthStore } = await import('../../store/stores/authStore');
-              const refreshResult = await useAuthStore.getState().refreshAuthToken();
-              
-              if (refreshResult.success) {
-                // Retry original request with new token
-                originalRequest.headers.Authorization = `Bearer ${refreshResult.token}`;
-                return api(originalRequest);
+          if (validateAuthData(persistedAuth)) {
+            try {
+              const { state } = JSON.parse(persistedAuth);
+              if (state?.refreshToken) {
+                // Import auth store dynamically to avoid circular dependency
+                const { useAuthStore } = await import('../../store/stores/authStore');
+                const refreshResult = await useAuthStore.getState().refreshAuthToken();
+                
+                if (refreshResult.success) {
+                  // Retry original request with new token
+                  originalRequest.headers.Authorization = `Bearer ${refreshResult.token}`;
+                  return api(originalRequest);
+                }
               }
+            } catch (parseError) {
+              console.error('Failed to parse persisted auth data:', parseError);
+              // Clear corrupted data
+              localStorage.removeItem('naagrik-auth');
+              sessionStorage.removeItem('naagrik-auth');
             }
+          } else if (persistedAuth) {
+            // Clean up corrupted data
+            console.warn('Removing corrupted persisted auth data');
+            localStorage.removeItem('naagrik-auth');
+            sessionStorage.removeItem('naagrik-auth');
           }
         } catch (refreshError) {
           console.error('Token refresh failed:', refreshError);

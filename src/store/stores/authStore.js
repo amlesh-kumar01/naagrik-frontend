@@ -2,6 +2,29 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { authAPI, setAuthToken, removeAuthToken } from '../../lib/api';
 
+// Helper function to validate and clean auth data
+const validateAndCleanAuthData = () => {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const authData = localStorage.getItem('naagrik-auth') || sessionStorage.getItem('naagrik-auth');
+    if (authData && (authData === '[object Object]' || authData.startsWith('[object'))) {
+      console.warn('Corrupted auth data detected, cleaning up...');
+      localStorage.removeItem('naagrik-auth');
+      sessionStorage.removeItem('naagrik-auth');
+      localStorage.removeItem('naagrik-token');
+      return null;
+    }
+    return authData;
+  } catch (error) {
+    console.error('Error validating auth data:', error);
+    localStorage.removeItem('naagrik-auth');
+    sessionStorage.removeItem('naagrik-auth');
+    localStorage.removeItem('naagrik-token');
+    return null;
+  }
+};
+
 // Auth Store
 export const useAuthStore = create(
   persist(
@@ -176,27 +199,68 @@ export const useAuthStore = create(
         getItem: (name) => {
           if (typeof window === 'undefined') return null;
           
+          // Validate and clean any corrupted data first
+          const cleanData = validateAndCleanAuthData();
+          if (!cleanData) return null;
+          
           // Check if user wants to be remembered
           const data = localStorage.getItem(name) || sessionStorage.getItem(name);
+          
+          // Additional validation
+          if (data && (data === '[object Object]' || data.startsWith('[object'))) {
+            console.warn('Detected corrupted auth data, cleaning up...');
+            localStorage.removeItem(name);
+            sessionStorage.removeItem(name);
+            return null;
+          }
+          
           return data;
         },
         setItem: (name, value) => {
           if (typeof window === 'undefined') return;
           
+          let stringValue = value;
+          
+          // Handle both string and object inputs (Zustand can pass either)
+          if (typeof value === 'object' && value !== null) {
+            try {
+              stringValue = JSON.stringify(value);
+            } catch (error) {
+              console.error('Error stringifying value for storage:', error);
+              return;
+            }
+          } else if (typeof value !== 'string') {
+            console.error('Invalid value type for storage:', typeof value);
+            return;
+          }
+          
+          // Validate that stringified value is not corrupted
+          if (stringValue === '[object Object]' || stringValue.startsWith('[object')) {
+            console.error('Corrupted value detected for storage, skipping');
+            return;
+          }
+          
           try {
-            const data = JSON.parse(value);
+            // Parse to get the data structure
+            const data = JSON.parse(stringValue);
             const shouldRemember = data?.state?.rememberMe;
             
             if (shouldRemember) {
-              localStorage.setItem(name, value);
+              localStorage.setItem(name, stringValue);
               sessionStorage.removeItem(name);
             } else {
-              sessionStorage.setItem(name, value);
+              sessionStorage.setItem(name, stringValue);
               localStorage.removeItem(name);
             }
           } catch (error) {
-            // Fallback to localStorage
-            localStorage.setItem(name, value);
+            console.error('Error processing data for storage:', error);
+            // Fallback to localStorage if we can parse it
+            try {
+              JSON.parse(stringValue); // Validate it's valid JSON
+              localStorage.setItem(name, stringValue);
+            } catch (parseError) {
+              console.error('Invalid JSON, not storing:', parseError);
+            }
           }
         },
         removeItem: (name) => {
@@ -206,11 +270,18 @@ export const useAuthStore = create(
         }
       },
       onRehydrateStorage: () => (state) => {
+        // Validate auth data on rehydration
+        validateAndCleanAuthData();
+        
         // After rehydration, if we have a token, set the auth token for API calls
-        if (state?.token) {
+        if (state?.token && typeof state.token === 'string') {
           setAuthToken(state.token);
           // Optionally verify the token is still valid
           state.initializeAuth?.();
+        } else if (state?.token) {
+          // If token exists but is not a string, clean up
+          console.warn('Invalid token detected during rehydration, cleaning up...');
+          removeAuthToken();
         }
       },
     }

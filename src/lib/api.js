@@ -18,21 +18,23 @@ export { stewardAPI };
 // Utility functions (preserved from original)
 export const setAuthToken = (token) => {
   if (typeof window !== 'undefined') {
-    localStorage.setItem('naagrik_token', token);
+    localStorage.setItem('naagrik-token', token);
   }
 };
 
 export const getAuthToken = () => {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem('naagrik_token');
+    return localStorage.getItem('naagrik-token');
   }
   return null;
 };
 
 export const removeAuthToken = () => {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem('naagrik_token');
-    localStorage.removeItem('naagrik_user');
+    localStorage.removeItem('naagrik-token');
+    localStorage.removeItem('naagrik-user');
+    localStorage.removeItem('naagrik-auth');
+    sessionStorage.removeItem('naagrik-auth');
   }
 };
 

@@ -15,7 +15,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('naagrik_token');
+      const token = localStorage.getItem('naagrik-token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -68,7 +68,7 @@ api.interceptors.response.use(
       
       if (typeof window !== 'undefined') {
         try {
-          // Try to get refresh token from auth store (check both localStorage and sessionStorage)
+          // Try to get refresh token from auth store
           const persistedAuth = localStorage.getItem('naagrik-auth') || sessionStorage.getItem('naagrik-auth');
           if (persistedAuth) {
             const { state } = JSON.parse(persistedAuth);
@@ -88,8 +88,8 @@ api.interceptors.response.use(
           console.error('Token refresh failed:', refreshError);
         }
         
-        // If refresh fails or no refresh token, redirect to login
-        localStorage.removeItem('naagrik_token');
+        // If refresh fails or no refresh token, clean up and redirect
+        localStorage.removeItem('naagrik-token');
         localStorage.removeItem('naagrik-auth');
         sessionStorage.removeItem('naagrik-auth');
         

@@ -39,6 +39,7 @@ const Header = () => {
     { name: 'Report Issue', href: '/report', icon: Plus },
     { name: 'Map View', href: '/map', icon: MapPin },
     { name: 'Emergency', href: '/emergency', icon: AlertTriangle },
+    { name: 'Issues', href: '/issues', icon: AlertTriangle }
   ];
 
   if (user?.role === 'STEWARD' || user?.role === 'SUPER_ADMIN') {

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingSpinner } from '@/components/ui/loading';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import ModernMapView from '@/components/features/ModernMapView';
 import { useIssuesStore } from '@/store';
 import { issueAPI } from '@/lib/api';
 import { 
@@ -113,9 +114,10 @@ const AddIssueReportPage = () => {
     }
   };
 
-  const handleMapClick = useCallback((lat, lng) => {
+  const handleMapClick = useCallback((location) => {
     if (!isMapInteractive) return;
     
+    const { lat, lng } = location;
     setSelectedLocation({ lat, lng });
     setFormData(prev => ({
       ...prev,
@@ -293,138 +295,6 @@ const AddIssueReportPage = () => {
     }
   };
 
-  // Simple interactive map component
-  const InteractiveMapView = () => (
-    <div className="w-full h-96 bg-gradient-to-br from-blue-100 to-green-100 rounded-xl border-2 border-[#B2B0E8] relative overflow-hidden">
-      {/* Map Background Pattern */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="w-full h-full bg-gradient-to-br from-blue-200 to-green-200" 
-             style={{
-               backgroundImage: `
-                 linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px),
-                 linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px)
-               `,
-               backgroundSize: '20px 20px'
-             }}
-        />
-      </div>
-      
-      {/* Map Header */}
-      <div className="absolute top-0 left-0 right-0 bg-white/90 backdrop-blur-sm p-4 border-b border-[#B2B0E8]">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Map className="h-5 w-5 text-[#3B38A0]" />
-            <span className="font-semibold text-[#1A2A80]">Interactive Location Map</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setIsMapInteractive(!isMapInteractive)}
-              className={`border-[#B2B0E8] ${isMapInteractive ? 'bg-[#B2B0E8] text-white' : 'text-[#3B38A0]'}`}
-            >
-              {isMapInteractive ? <Eye className="h-4 w-4 mr-1" /> : <EyeOff className="h-4 w-4 mr-1" />}
-              {isMapInteractive ? 'Interactive' : 'View Only'}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setShowMap(!showMap)}
-              className="border-[#B2B0E8] text-[#3B38A0]"
-            >
-              {showMap ? 'Hide Map' : 'Show Map'}
-            </Button>
-          </div>
-        </div>
-      </div>
-      
-      {/* Map Click Area */}
-      <div 
-        className={`absolute inset-0 mt-16 ${isMapInteractive ? 'cursor-crosshair' : 'cursor-default'}`}
-        onClick={(e) => {
-          if (!isMapInteractive) return;
-          const rect = e.currentTarget.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-          
-          // Convert click position to approximate lat/lng (mock calculation)
-          const lat = mapCenter[0] + (rect.height/2 - y) * 0.001;
-          const lng = mapCenter[1] + (x - rect.width/2) * 0.001;
-          
-          handleMapClick(lat, lng);
-        }}
-      >
-        {/* Instructions */}
-        {isMapInteractive && !selectedLocation && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 text-center shadow-lg border-2 border-[#B2B0E8]">
-              <MousePointer className="h-12 w-12 text-[#3B38A0] mx-auto mb-2" />
-              <p className="text-[#1A2A80] font-semibold mb-1">Click anywhere on the map</p>
-              <p className="text-gray-600 text-sm">to select the issue location</p>
-            </div>
-          </div>
-        )}
-        
-        {/* Selected Location Pin */}
-        {selectedLocation && (
-          <div 
-            className="absolute transform -translate-x-1/2 -translate-y-full"
-            style={{
-              left: '50%',
-              top: '50%',
-            }}
-          >
-            <div className="relative">
-              <div className="h-12 w-12 bg-gradient-to-r from-red-500 to-red-600 rounded-full border-4 border-white shadow-lg flex items-center justify-center animate-bounce">
-                <MapPin className="h-6 w-6 text-white" />
-              </div>
-              <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg border border-gray-200 whitespace-nowrap">
-                <p className="text-xs font-semibold text-[#1A2A80]">Selected Location</p>
-                <p className="text-xs text-gray-600">
-                  {selectedLocation.lat.toFixed(4)}, {selectedLocation.lng.toFixed(4)}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {/* Map Controls */}
-        <div className="absolute bottom-4 right-4 flex flex-col space-y-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={getCurrentLocationHandler}
-            disabled={isGettingLocation}
-            className="bg-white/90 backdrop-blur-sm border-[#B2B0E8] text-[#3B38A0] hover:bg-[#B2B0E8] hover:text-white"
-            title="Get My Location"
-          >
-            {isGettingLocation ? (
-              <LoadingSpinner size="sm" />
-            ) : (
-              <Crosshair className="h-4 w-4" />
-            )}
-          </Button>
-          
-          {selectedLocation && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={clearSelectedLocation}
-              className="bg-white/90 backdrop-blur-sm border-red-300 text-red-600 hover:bg-red-50"
-              title="Clear Selection"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <ProtectedRoute>
       <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)' }}>
@@ -491,7 +361,92 @@ const AddIssueReportPage = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
-                  {showMap && <InteractiveMapView />}
+                  {/* Map Controls */}
+                  <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <Map className="h-5 w-5 text-[#3B38A0]" />
+                      <span className="font-semibold text-[#1A2A80]">Interactive Location Map</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsMapInteractive(!isMapInteractive)}
+                        className={`border-[#B2B0E8] ${isMapInteractive ? 'bg-[#B2B0E8] text-white' : 'text-[#3B38A0]'}`}
+                      >
+                        {isMapInteractive ? <Eye className="h-4 w-4 mr-1" /> : <EyeOff className="h-4 w-4 mr-1" />}
+                        {isMapInteractive ? 'Interactive' : 'View Only'}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowMap(!showMap)}
+                        className="border-[#B2B0E8] text-[#3B38A0]"
+                      >
+                        {showMap ? 'Hide Map' : 'Show Map'}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {showMap && (
+                    <div className="mb-6">
+                      <ModernMapView
+                        issues={[]}
+                        onLocationSelect={isMapInteractive ? handleMapClick : undefined}
+                        height="400px"
+                        showCurrentLocation={true}
+                        interactive={isMapInteractive}
+                        selectableLocation={isMapInteractive}
+                      />
+                      
+                      {/* Map Instructions */}
+                      {isMapInteractive && !selectedLocation && (
+                        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex items-center space-x-2">
+                            <MousePointer className="h-5 w-5 text-blue-600" />
+                            <p className="text-blue-800 font-medium">Click anywhere on the map to select the issue location</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Get Current Location Button */}
+                      <div className="mt-4 flex items-center space-x-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={getCurrentLocationHandler}
+                          disabled={isGettingLocation}
+                          className="bg-white border-[#B2B0E8] text-[#3B38A0] hover:bg-[#B2B0E8] hover:text-white"
+                        >
+                          {isGettingLocation ? (
+                            <>
+                              <LoadingSpinner size="sm" className="mr-2" />
+                              Getting Location...
+                            </>
+                          ) : (
+                            <>
+                              <Crosshair className="h-4 w-4 mr-2" />
+                              Get My Current Location
+                            </>
+                          )}
+                        </Button>
+                        
+                        {selectedLocation && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={clearSelectedLocation}
+                            className="border-red-300 text-red-600 hover:bg-red-50"
+                          >
+                            <X className="h-4 w-4 mr-2" />
+                            Clear Selection
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   
                   <div className="mt-6 space-y-4">
                     <div className="grid grid-cols-2 gap-3">

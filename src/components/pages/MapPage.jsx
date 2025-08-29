@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import MapView from '@/components/features/MapView';
+import ModernMapView from '@/components/features/ModernMapView';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { useIssuesStore } from '@/store';
 import { MapPin } from 'lucide-react';
@@ -40,11 +40,17 @@ const MapPage = () => {
           </div>
 
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border-0">
-            <MapView 
-              issues={issues}
-              loading={loading}
+            <ModernMapView 
+              issues={issues.filter(issue => issue.latitude && issue.longitude)}
+              onLocationSelect={(location) => {
+                // Optional: Handle location selection if needed
+                console.log('Location selected:', location);
+              }}
               onIssueClick={handleIssueClick}
               height="70vh"
+              showCurrentLocation={true}
+              interactive={true}
+              selectableLocation={false}
             />
           </div>
         </main>

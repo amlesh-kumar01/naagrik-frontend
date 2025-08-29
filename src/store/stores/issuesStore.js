@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { issueAPI, uploadAPI, commentAPI } from '../../lib/api';
+import { issueAPI, commentAPI } from '../../lib/api';
 
 // Issues Store (exactly from original index.js)
 export const useIssuesStore = create((set, get) => ({
@@ -63,36 +63,10 @@ export const useIssuesStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     
     try {
-      let mediaUrls = [];
-      
-      // Handle media upload first if there are files
+      // Handle FormData case - send directly to API
       if (issueData instanceof FormData) {
-        const mediaFiles = issueData.getAll('media');
-        if (mediaFiles && mediaFiles.length > 0) {
-          try {
-            const uploadResponse = await uploadAPI.uploadIssueMedia(mediaFiles);
-            mediaUrls = uploadResponse.data.map(item => item.url);
-          } catch (uploadError) {
-            throw new Error(`Media upload failed: ${uploadError.message}`);
-          }
-        }
-        
-        // Convert FormData to regular object
-        const issuePayload = {};
-        for (const [key, value] of issueData.entries()) {
-          if (key !== 'media') {
-            issuePayload[key] = value;
-          }
-        }
-        
-        // Add media URLs to payload
-        if (mediaUrls.length > 0) {
-          issuePayload.thumbnailUrl = mediaUrls[0]; // First image as thumbnail
-          issuePayload.mediaUrls = mediaUrls;
-        }
-        
-        // Create issue
-        const response = await issueAPI.createIssue(issuePayload);
+        // Send original FormData directly (contains both issue data and media files)
+        const response = await issueAPI.createIssue(issueData);
         // Backend returns { success: true, message: "...", issue: {...} }
         const newIssue = response.issue || response.data?.issue;
         

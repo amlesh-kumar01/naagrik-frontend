@@ -36,6 +36,7 @@ const IssueList = ({
     isLoading: loading, 
     error, 
     fetchIssues, 
+    updateIssue,
     pagination 
   } = useIssuesStore();
 
@@ -161,6 +162,20 @@ const IssueList = ({
     setLocalIssues(prevIssues =>
       prevIssues.filter(issue => issue.id !== issueId)
     );
+  };
+
+  const handleIssueUpdate = (issueId, updates) => {
+    // Update the issue data immediately in local state
+    setLocalIssues(prevIssues =>
+      prevIssues.map(issue =>
+        issue.id === issueId
+          ? { ...issue, ...updates }
+          : issue
+      )
+    );
+    
+    // Also update the main store
+    updateIssue(issueId, updates);
   };
 
   const categories = [...new Set(issues.map(issue => issue.category))];
@@ -385,6 +400,7 @@ const IssueList = ({
               onShare={handleShare}
               onStatusUpdate={handleStatusUpdate}
               onIssueRemoved={handleIssueRemoved}
+              onIssueUpdate={handleIssueUpdate}
               compact={viewMode === 'list' || compact}
             />
           ))}

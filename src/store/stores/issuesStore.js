@@ -141,32 +141,99 @@ export const useIssuesStore = create((set, get) => ({
       const response = await issueAPI.voteIssue(issueId, voteType);
       
       // Update the issue in the current issues list
-      const { issues } = get();
+      const { issues, currentIssue } = get();
       const updatedIssues = issues.map(issue => {
         if (issue.id === issueId) {
           return {
             ...issue,
             vote_score: response.voteScore || issue.vote_score,
-            user_vote: response.userVote
+            upvote_count: response.data?.issueStats?.upvotes || issue.upvote_count,
+            downvote_count: response.data?.issueStats?.downvotes || issue.downvote_count,
+            user_vote: response.userVote,
+            user_vote_status: {
+              hasVoted: true,
+              voteType: voteType,
+              voteTypeText: voteType === 1 ? 'upvote' : 'downvote'
+            }
           };
         }
         return issue;
       });
       
-      set({ issues: updatedIssues });
+      // Update current issue if it's the one being voted on
+      const updatedCurrentIssue = currentIssue?.id === issueId ? {
+        ...currentIssue,
+        vote_score: response.voteScore || currentIssue.vote_score,
+        upvote_count: response.data?.issueStats?.upvotes || currentIssue.upvote_count,
+        downvote_count: response.data?.issueStats?.downvotes || currentIssue.downvote_count,
+        user_vote: response.userVote,
+        user_vote_status: {
+          hasVoted: true,
+          voteType: voteType,
+          voteTypeText: voteType === 1 ? 'upvote' : 'downvote'
+        }
+      } : currentIssue;
+      
+      set({ issues: updatedIssues, currentIssue: updatedCurrentIssue });
       return response;
     } catch (error) {
       throw error;
     }
   },
 
-  // Remove vote from issue
+  // Remove vote from issue (using dedicated delete API)
+  deleteVote: async (issueId) => {
+    try {
+      const response = await issueAPI.deleteVote(issueId);
+      
+      // Update the issue in the current issues list
+      const { issues, currentIssue } = get();
+      const updatedIssues = issues.map(issue => {
+        if (issue.id === issueId) {
+          return {
+            ...issue,
+            vote_score: response.data?.voteScore || response.voteScore || issue.vote_score,
+            upvote_count: response.data?.upvotes || issue.upvote_count,
+            downvote_count: response.data?.downvotes || issue.downvote_count,
+            user_vote: null,
+            user_vote_status: {
+              hasVoted: false,
+              voteType: null,
+              voteTypeText: null
+            }
+          };
+        }
+        return issue;
+      });
+      
+      // Update currentIssue if it's the same issue
+      const updatedCurrentIssue = currentIssue?.id === issueId ? {
+        ...currentIssue,
+        vote_score: response.data?.voteScore || response.voteScore || currentIssue.vote_score,
+        upvote_count: response.data?.upvotes || currentIssue.upvote_count,
+        downvote_count: response.data?.downvotes || currentIssue.downvote_count,
+        user_vote: null,
+        user_vote_status: {
+          hasVoted: false,
+          voteType: null,
+          voteTypeText: null
+        }
+      } : currentIssue;
+      
+      set({ issues: updatedIssues, currentIssue: updatedCurrentIssue });
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Remove vote from issue (legacy - keeping for backward compatibility)
   removeVoteFromIssue: async (issueId) => {
     try {
       const response = await issueAPI.removeVoteFromIssue(issueId);
       
       // Update the issue in the current issues list
-      const { issues } = get();
+      const { issues, currentIssue } = get();
       const updatedIssues = issues.map(issue => {
         if (issue.id === issueId) {
           return {
@@ -174,13 +241,32 @@ export const useIssuesStore = create((set, get) => ({
             vote_score: response.data.vote_score || issue.vote_score,
             upvotes: response.data.upvotes || issue.upvotes,
             downvotes: response.data.downvotes || issue.downvotes,
-            user_vote: null
+            user_vote: null,
+            user_vote_status: {
+              hasVoted: false,
+              voteType: null,
+              voteTypeText: null
+            }
           };
         }
         return issue;
       });
       
-      set({ issues: updatedIssues });
+      // Update currentIssue if it's the same issue
+      const updatedCurrentIssue = currentIssue?.id === issueId ? {
+        ...currentIssue,
+        vote_score: response.data.vote_score || currentIssue.vote_score,
+        upvotes: response.data.upvotes || currentIssue.upvotes,
+        downvotes: response.data.downvotes || currentIssue.downvotes,
+        user_vote: null,
+        user_vote_status: {
+          hasVoted: false,
+          voteType: null,
+          voteTypeText: null
+        }
+      } : currentIssue;
+      
+      set({ issues: updatedIssues, currentIssue: updatedCurrentIssue });
       return response.data;
     } catch (error) {
       throw error;

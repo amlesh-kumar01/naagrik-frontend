@@ -280,80 +280,56 @@ const markerTypes = {
     icon: '📝',
     color: '#4caf50'
   },
-  'category-infrastructure': {
-    className: 'category-infrastructure',
-    icon: '🏗️',
+  // Category-based markers
+  'category-road-infrastructure': {
+    className: 'category-road',
+    icon: '🛣️',
+    color: '#795548'
+  },
+  'category-water-supply': {
+    className: 'category-water',
+    icon: '💧',
+    color: '#2196f3'
+  },
+  'category-sanitation': {
+    className: 'category-sanitation',
+    icon: '🗑️',
     color: '#607d8b'
   },
-  'category-safety': {
+  'category-public-safety': {
     className: 'category-safety',
-    icon: '🛡️',
-    color: '#e91e63'
+    icon: '🚨',
+    color: '#f44336'
+  },
+  'category-transportation': {
+    className: 'category-transport',
+    icon: '🚌',
+    color: '#ff9800'
   },
   'category-environment': {
     className: 'category-environment',
     icon: '🌱',
-    color: '#8bc34a'
-  },
-  'category-utilities': {
-    className: 'category-utilities',
-    icon: '⚡',
-    color: '#03a9f4'
-  },
-  'category-transport': {
-    className: 'category-transport',
-    icon: '🚗',
-    color: '#673ab7'
-  },
-  'category-road-infrastructure': {
-    className: 'category-road-infrastructure',
-    icon: '🛣️',
-    color: '#f59e0b'
-  },
-  'category-water-supply': {
-    className: 'category-water-supply',
-    icon: '💧',
-    color: '#0ea5e9'
-  },
-  'category-sanitation': {
-    className: 'category-sanitation',
-    icon: '🧹',
-    color: '#8b5cf6'
-  },
-  'category-public-safety': {
-    className: 'category-public-safety',
-    icon: '🚨',
-    color: '#dc2626'
+    color: '#4caf50'
   },
   'category-healthcare': {
     className: 'category-healthcare',
     icon: '🏥',
-    color: '#ec4899'
-  },
-  'category-transportation': {
-    className: 'category-transportation',
-    icon: '🚌',
-    color: '#10b981'
-  },
-  'category-environment': {
-    className: 'category-environment',
-    icon: '🌱',
-    color: '#22c55e'
+    color: '#e91e63'
   },
   'category-housing': {
     className: 'category-housing',
     icon: '🏠',
-    color: '#f97316'
+    color: '#9c27b0'
+  },
+  'category-test-category': {
+    className: 'category-test',
+    icon: '🧪',
+    color: '#00bcd4'
   },
   'category-other': {
     className: 'category-other',
-    icon: '📋',
-    color: '#6b7280'
-  },
-  'category-test-category': {
-    className: 'category-test-category',
-    icon: '🧪',
-    color: '#a855f7'
+    icon: '❓',
+    color: '#757575'
   }
 };
 

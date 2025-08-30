@@ -169,11 +169,11 @@ const InteractiveMap = ({
 
     // Add issue markers
     issues.forEach(issue => {
-      if (!issue.latitude || !issue.longitude) return;
+      if (!issue.location_lat || !issue.location_lng) return;
 
       const markerType = getIssueMarkerType(issue);
       const marker = L.marker(
-        [issue.latitude, issue.longitude],
+        [issue.location_lat, issue.location_lng],
         { icon: createGoogleMapsMarker(markerType) }
       ).addTo(mapInstanceRef.current);
 
@@ -237,19 +237,26 @@ const InteractiveMap = ({
     selectedMarkerRef.current = marker;
   }, []);
 
-  // Get marker type based on issue status/priority/category
+  // Get marker type based on issue status/priority/category and vote score
   const getIssueMarkerType = (issue) => {
     // High priority issues get special treatment
     if (issue.priority === 'HIGH') return 'priority-high';
     
-    // Status-based coloring
+    // Status-based coloring takes precedence
     if (issue.status === 'RESOLVED') return 'issue-resolved';
     if (issue.status === 'IN_PROGRESS') return 'issue-progress';
     if (issue.status === 'ACKNOWLEDGED') return 'issue-acknowledged';
     if (issue.status === 'ARCHIVED') return 'issue-archived';
     
-    // Category-based coloring for open issues
+    // For open issues, consider vote score for importance
     if (issue.status === 'OPEN') {
+      const voteScore = issue.vote_score || 0;
+      
+      // High vote score issues get priority colors
+      if (voteScore >= 5) return 'priority-high';
+      if (voteScore >= 2) return 'priority-medium';
+      
+      // Category-based coloring for regular open issues
       const category = (issue.category || '').toLowerCase().replace(/\s+/g, '-');
       
       // Map specific category names to marker types
@@ -311,8 +318,13 @@ const InteractiveMap = ({
     const statusColors = {
       'OPEN': '#ff4444',
       'IN_PROGRESS': '#ff9800',
-      'RESOLVED': '#00c851'
+      'RESOLVED': '#00c851',
+      'ACKNOWLEDGED': '#2196f3',
+      'ARCHIVED': '#757575'
     };
+
+    const voteScore = issue.vote_score || 0;
+    const voteScoreColor = voteScore > 0 ? '#00c851' : voteScore < 0 ? '#ff4444' : '#666';
 
     return `
       <div style="min-width: 280px; max-width: 300px;">
@@ -321,18 +333,32 @@ const InteractiveMap = ({
             <h4 style="margin: 0; color: #333; font-size: 16px; font-weight: 600; line-height: 1.3;">
               ${issue.title}
             </h4>
-            <span style="
-              background: ${statusColors[issue.status] || '#666'};
-              color: white;
-              padding: 2px 8px;
-              border-radius: 12px;
-              font-size: 10px;
-              font-weight: 500;
-              margin-left: 8px;
-              white-space: nowrap;
-            ">
-              ${issue.status}
-            </span>
+            <div style="display: flex; gap: 4px; margin-left: 8px;">
+              <span style="
+                background: ${statusColors[issue.status] || '#666'};
+                color: white;
+                padding: 2px 8px;
+                border-radius: 12px;
+                font-size: 10px;
+                font-weight: 500;
+                white-space: nowrap;
+              ">
+                ${issue.status}
+              </span>
+              ${voteScore !== 0 ? `
+                <span style="
+                  background: ${voteScoreColor};
+                  color: white;
+                  padding: 2px 6px;
+                  border-radius: 10px;
+                  font-size: 10px;
+                  font-weight: 600;
+                  white-space: nowrap;
+                ">
+                  ${voteScore > 0 ? '+' : ''}${voteScore}
+                </span>
+              ` : ''}
+            </div>
           </div>
           
           <p style="margin: 0 0 12px 0; color: #666; font-size: 14px; line-height: 1.4;">

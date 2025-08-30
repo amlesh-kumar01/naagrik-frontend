@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import IssueManagementActions from './IssueManagementActions';
-import UpvoteButton from './UpvoteButton';
+import VoteButton from './VoteButton';
 import { canManageIssue } from '@/lib/utils/issuePermissions';
 import { 
   MapPin, 
@@ -29,6 +29,7 @@ const IssueCard = ({
   onShare, 
   onStatusUpdate,
   onIssueRemoved,
+  onIssueUpdate, // New callback for updating issue data
   showLocation = true,
   showManagementActions = true,
   compact = false,
@@ -128,10 +129,26 @@ const IssueCard = ({
               {/* Footer Actions */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4 text-sm">
-                  {/* Upvote Button */}
-                  <UpvoteButton 
+                  {/* Vote Buttons */}
+                  <VoteButton 
                     issueId={issue.id}
-                    className="px-2"
+                    userVoteStatus={issue.user_vote_status}
+                    voteStats={{
+                      upvotes: parseInt(issue.upvote_count) || 0,
+                      downvotes: parseInt(issue.downvote_count) || 0
+                    }}
+                    onVoteChange={(voteData) => {
+                      // Update the issue data in the parent component
+                      if (onIssueUpdate) {
+                        onIssueUpdate(issue.id, {
+                          upvote_count: voteData.upvotes,
+                          downvote_count: voteData.downvotes,
+                          vote_score: voteData.vote_score,
+                          user_vote_status: voteData.userVoteStatus
+                        });
+                      }
+                    }}
+                    compact={true}
                   />
                   
                   {/* Comments Count */}
@@ -251,10 +268,26 @@ const IssueCard = ({
 
           {/* Actions */}
           <div className="flex items-center space-x-3">
-            {/* Upvote Button */}
-            <UpvoteButton 
+            {/* Vote Buttons */}
+            <VoteButton 
               issueId={issue.id}
-              className="px-3"
+              userVoteStatus={issue.user_vote_status}
+              voteStats={{
+                upvotes: parseInt(issue.upvote_count) || 0,
+                downvotes: parseInt(issue.downvote_count) || 0
+              }}
+              onVoteChange={(voteData) => {
+                // Update the issue data in the parent component
+                if (onIssueUpdate) {
+                  onIssueUpdate(issue.id, {
+                    upvote_count: voteData.upvotes,
+                    downvote_count: voteData.downvotes,
+                    vote_score: voteData.vote_score,
+                    user_vote_status: voteData.userVoteStatus
+                  });
+                }
+              }}
+              compact={true}
             />
             
             {/* Comments */}

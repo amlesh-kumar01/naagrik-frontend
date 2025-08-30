@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingCard } from '@/components/ui/loading';
 import IssueManagementActions from '../features/IssueManagementActions';
-import VotingButtons from '../features/VotingButtons';
+import VoteButton from '../features/VoteButton';
 import CommentSection from '../features/CommentSection';
 import { canManageIssue } from '@/lib/utils/issuePermissions';
 import { colors } from '../../lib/theme';
@@ -40,9 +40,12 @@ const IssueDetailPage = ({ issueId }) => {
   const { user, isAuthenticated } = useAuthStore();
   const { 
     currentIssue, 
+    issues,
     isLoading, 
     error, 
-    fetchIssue
+    fetchIssue,
+    fetchIssues,
+    updateIssue
   } = useIssuesStore();
   const { getIssueComments } = useCommentsStore();
   
@@ -53,6 +56,7 @@ const IssueDetailPage = ({ issueId }) => {
   useEffect(() => {
     if (issueId) {
       loadIssue();
+      loadAllIssues();
     }
   }, [issueId]);
 
@@ -61,6 +65,14 @@ const IssueDetailPage = ({ issueId }) => {
       await fetchIssue(issueId);
     } catch (error) {
       console.error('Error loading issue:', error);
+    }
+  };
+
+  const loadAllIssues = async () => {
+    try {
+      await fetchIssues({ limit: 100 }); // Load all issues for map view
+    } catch (error) {
+      console.error('Error loading all issues:', error);
     }
   };
 
@@ -89,6 +101,11 @@ const IssueDetailPage = ({ issueId }) => {
   const handleIssueRemoved = (issueId) => {
     // Navigate back to issues list when issue is removed
     router.push('/issues');
+  };
+
+  const handleIssueUpdate = (issueId, updates) => {
+    // Update the issue in store for instant UI feedback
+    updateIssue(issueId, updates);
   };
 
   const getStatusIcon = (status) => {
@@ -348,13 +365,21 @@ const IssueDetailPage = ({ issueId }) => {
                 <CardTitle className="text-[#1A2A80] text-lg">Actions</CardTitle>
               </CardHeader>
               <CardContent>
-                <VotingButtons
+                <VoteButton
                   issueId={currentIssue.id}
-                  initialStats={{
-                    upvotes: currentIssue.upvotes || 0,
-                    downvotes: currentIssue.downvotes || 0,
-                    total_score: currentIssue.vote_score || 0,
-                    user_vote: currentIssue.user_vote
+                  voteStats={{
+                    upvotes: currentIssue.upvote_count || 0,
+                    downvotes: currentIssue.downvote_count || 0
+                  }}
+                  userVoteStatus={currentIssue.user_vote_status}
+                  onVoteChange={(voteData) => {
+                    // Update current issue instantly
+                    handleIssueUpdate(currentIssue.id, {
+                      upvote_count: voteData.upvotes,
+                      downvote_count: voteData.downvotes,
+                      vote_score: voteData.upvotes - voteData.downvotes,
+                      user_vote_status: voteData.userVoteStatus
+                    });
                   }}
                   compact={false}
                 />
@@ -455,19 +480,23 @@ const IssueDetailPage = ({ issueId }) => {
                     height="250px"
                     enableLocationSelection={false}
                     showCurrentLocation={true}
-                    issues={[{
-                      id: currentIssue.id,
-                      title: currentIssue.title,
-                      description: currentIssue.description,
-                      latitude: parseFloat(currentIssue.location_lat),
-                      longitude: parseFloat(currentIssue.location_lng),
-                      status: currentIssue.status,
-                      priority: currentIssue.priority || 'MEDIUM',
-                      category: currentIssue.category_name || 'General',
-                      address: currentIssue.address,
-                      created_at: currentIssue.created_at
-                    }]}
-                    onIssueClick={() => {}} // Already on issue detail page
+                    issues={issues.filter(issue => issue.location_lat && issue.location_lng).map(issue => ({
+                      id: issue.id,
+                      title: issue.title,
+                      description: issue.description,
+                      latitude: parseFloat(issue.location_lat),
+                      longitude: parseFloat(issue.location_lng),
+                      status: issue.status,
+                      priority: issue.priority || 'MEDIUM',
+                      category: issue.category_name || 'General',
+                      address: issue.address,
+                      created_at: issue.created_at
+                    }))}
+                    onIssueClick={(issue) => {
+                      if (issue.id !== currentIssue.id) {
+                        router.push(`/issues/${issue.id}`);
+                      }
+                    }}
                     className="mb-3"
                   />
                   {currentIssue.address && (

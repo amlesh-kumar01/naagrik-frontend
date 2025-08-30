@@ -36,7 +36,6 @@ const IssueList = ({
     isLoading: loading, 
     error, 
     fetchIssues, 
-    voteOnIssue,
     pagination 
   } = useIssuesStore();
 
@@ -132,15 +131,6 @@ const IssueList = ({
     setFilters({ ...filters, [key]: value });
   };
 
-  const handleVote = async (issueId) => {
-    try {
-      await voteOnIssue(issueId);
-    } catch (error) {
-      console.error('Error voting on issue:', error);
-      throw error;
-    }
-  };
-
   const handleShare = (issue) => {
     const url = `${window.location.origin}/issues/${issue.id}`;
     if (navigator.share) {
@@ -153,6 +143,24 @@ const IssueList = ({
       navigator.clipboard.writeText(url);
       alert('Link copied to clipboard!');
     }
+  };
+
+  const handleStatusUpdate = (issueId, newStatus) => {
+    // Update the local issue status immediately for better UX
+    setLocalIssues(prevIssues =>
+      prevIssues.map(issue =>
+        issue.id === issueId
+          ? { ...issue, status: newStatus, updated_at: new Date().toISOString() }
+          : issue
+      )
+    );
+  };
+
+  const handleIssueRemoved = (issueId) => {
+    // Remove the issue from local state
+    setLocalIssues(prevIssues =>
+      prevIssues.filter(issue => issue.id !== issueId)
+    );
   };
 
   const categories = [...new Set(issues.map(issue => issue.category))];
@@ -374,8 +382,9 @@ const IssueList = ({
             <IssueCard
               key={issue.id}
               issue={issue}
-              onVote={handleVote}
               onShare={handleShare}
+              onStatusUpdate={handleStatusUpdate}
+              onIssueRemoved={handleIssueRemoved}
               compact={viewMode === 'list' || compact}
             />
           ))}

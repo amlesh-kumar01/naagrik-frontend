@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import IssueManagementActions from './IssueManagementActions';
+import VotingButtons from './VotingButtons';
+import { canManageIssue } from '@/lib/utils/issuePermissions';
 import { 
   MapPin, 
   Clock, 
-  ThumbsUp, 
   MessageCircle, 
   Share2, 
   MoreHorizontal,
@@ -28,37 +31,25 @@ const IssueCard = ({
   issue, 
   onVote, 
   onShare, 
+  onStatusUpdate,
+  onIssueRemoved,
   showVoteButton = true, 
   showLocation = true,
+  showManagementActions = true,
   compact = false,
   className = '' 
 }) => {
   const router = useRouter();
-  const [isVoting, setIsVoting] = useState(false);
-  const [currentVotes, setCurrentVotes] = useState(issue.votes_count || 0);
-  const [hasVoted, setHasVoted] = useState(issue.user_has_voted || false);
+  const { user } = useAuthStore();
+
+  const canManage = canManageIssue(issue, user);
 
   const handleCardClick = (e) => {
     // Don't navigate if clicking on buttons or links
-    if (e.target.closest('button') || e.target.closest('a')) {
+    if (e.target.closest('button') || e.target.closest('a') || e.target.closest('[role="dialog"]')) {
       return;
     }
     router.push(`/issues/${issue.id}`);
-  };
-
-  const handleVote = async () => {
-    if (isVoting) return;
-    
-    setIsVoting(true);
-    try {
-      await onVote?.(issue.id);
-      setCurrentVotes(prev => hasVoted ? prev - 1 : prev + 1);
-      setHasVoted(!hasVoted);
-    } catch (error) {
-      console.error('Error voting:', error);
-    } finally {
-      setIsVoting(false);
-    }
   };
 
   const handleShare = () => {
@@ -129,8 +120,17 @@ const IssueCard = ({
               <div className="flex items-center justify-between mt-3">
                 <div className="flex items-center space-x-4 text-sm text-gray-500">
                   <span className="flex items-center">
-                    <ThumbsUp className="h-4 w-4 mr-1" />
-                    {currentVotes}
+                    <VotingButtons
+                      issueId={issue.id}
+                      initialStats={{
+                        upvotes: issue.upvotes || 0,
+                        downvotes: issue.downvotes || 0,
+                        total_score: issue.vote_score || 0,
+                        user_vote: issue.user_vote
+                      }}
+                      compact={true}
+                      className="text-xs"
+                    />
                   </span>
                   <span className="flex items-center">
                     <MessageCircle className="h-4 w-4 mr-1" />
@@ -247,16 +247,17 @@ const IssueCard = ({
           {/* Actions */}
           <div className="flex items-center space-x-2">
             {showVoteButton && (
-              <Button
-                variant={hasVoted ? "default" : "outline"}
-                size="sm"
-                onClick={handleVote}
-                disabled={isVoting}
-                className="flex items-center space-x-1"
-              >
-                <ThumbsUp className={`h-4 w-4 ${hasVoted ? 'fill-current' : ''}`} />
-                <span>{currentVotes}</span>
-              </Button>
+              <VotingButtons
+                issueId={issue.id}
+                initialStats={{
+                  upvotes: issue.upvotes || 0,
+                  downvotes: issue.downvotes || 0,
+                  total_score: issue.vote_score || 0,
+                  user_vote: issue.user_vote
+                }}
+                compact={true}
+                className="flex-shrink-0"
+              />
             )}
             
             <Link href={`/issues/${issue.id}`}>
@@ -277,6 +278,19 @@ const IssueCard = ({
             </Button>
           </div>
         </div>
+
+        {/* Management Actions - Only for Stewards/Admins */}
+        {showManagementActions && canManage && (
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <IssueManagementActions
+              issue={issue}
+              onStatusUpdate={onStatusUpdate}
+              onIssueRemoved={onIssueRemoved}
+              compact={true}
+              className="justify-end"
+            />
+          </div>
+        )}
       </CardContent>
     </Card>
   );

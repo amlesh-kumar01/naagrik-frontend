@@ -183,7 +183,148 @@ export const useIssuesStore = create((set, get) => ({
     }
   },
 
+  // Remove vote from issue
+  removeVoteFromIssue: async (issueId) => {
+    try {
+      const response = await issueAPI.removeVoteFromIssue(issueId);
+      
+      // Update the issue in the current issues list
+      const { issues } = get();
+      const updatedIssues = issues.map(issue => {
+        if (issue.id === issueId) {
+          return {
+            ...issue,
+            vote_score: response.data.vote_score || issue.vote_score,
+            upvotes: response.data.upvotes || issue.upvotes,
+            downvotes: response.data.downvotes || issue.downvotes,
+            user_vote: null
+          };
+        }
+        return issue;
+      });
+      
+      set({ issues: updatedIssues });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   clearError: () => set({ error: null }),
+
+  // Archive issue (soft delete for resolved issues)
+  archiveIssue: async (issueId, archiveData) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await issueAPI.archiveIssue(issueId, archiveData);
+      
+      // Remove issue from the list
+      set(state => ({
+        issues: state.issues.filter(issue => issue.id !== issueId),
+        currentIssue: state.currentIssue?.id === issueId ? null : state.currentIssue,
+        isLoading: false
+      }));
+      
+      return response.data;
+    } catch (error) {
+      set({ 
+        isLoading: false, 
+        error: error.response?.data?.error?.message || 'Failed to archive issue'
+      });
+      throw error;
+    }
+  },
+
+  // Delete issue (hard delete - admin only)
+  deleteIssue: async (issueId) => {
+    set({ isLoading: true, error: null });
+    try {
+      await issueAPI.deleteIssue(issueId);
+      
+      // Remove issue from the list
+      set(state => ({
+        issues: state.issues.filter(issue => issue.id !== issueId),
+        currentIssue: state.currentIssue?.id === issueId ? null : state.currentIssue,
+        isLoading: false
+      }));
+      
+      return true;
+    } catch (error) {
+      set({ 
+        isLoading: false, 
+        error: error.response?.data?.error?.message || 'Failed to delete issue'
+      });
+      throw error;
+    }
+  },
+
+  // Mark issue as duplicate
+  markAsDuplicate: async (issueId, duplicateData) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await issueAPI.markAsDuplicate(issueId, duplicateData);
+      
+      // Update issue status in the list
+      set(state => ({
+        issues: state.issues.map(issue => 
+          issue.id === issueId 
+            ? { ...issue, status: 'DUPLICATE', primary_issue_id: duplicateData.primaryIssueId }
+            : issue
+        ),
+        currentIssue: state.currentIssue?.id === issueId 
+          ? { ...state.currentIssue, status: 'DUPLICATE', primary_issue_id: duplicateData.primaryIssueId }
+          : state.currentIssue,
+        isLoading: false
+      }));
+      
+      return response.data;
+    } catch (error) {
+      set({ 
+        isLoading: false, 
+        error: error.response?.data?.error?.message || 'Failed to mark as duplicate'
+      });
+      throw error;
+    }
+  },
+
+  // Update issue status
+  updateIssueStatus: async (issueId, status, reason, notes) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await issueAPI.updateIssueStatus(issueId, status, reason);
+      
+      // Update issue in the list
+      set(state => ({
+        issues: state.issues.map(issue => 
+          issue.id === issueId 
+            ? { ...issue, status, updated_at: new Date().toISOString() }
+            : issue
+        ),
+        currentIssue: state.currentIssue?.id === issueId 
+          ? { ...state.currentIssue, status, updated_at: new Date().toISOString() }
+          : state.currentIssue,
+        isLoading: false
+      }));
+      
+      return response.data;
+    } catch (error) {
+      set({ 
+        isLoading: false, 
+        error: error.response?.data?.error?.message || 'Failed to update issue status'
+      });
+      throw error;
+    }
+  },
+
+  // Get issue history
+  fetchIssueHistory: async (issueId) => {
+    try {
+      const response = await issueAPI.getIssueHistory(issueId);
+      return response.data.history;
+    } catch (error) {
+      throw error;
+    }
+  },
 
   // Create comment
   createComment: async (issueId, content) => {
@@ -210,6 +351,16 @@ export const useIssuesStore = create((set, get) => ({
       
       set({ comments: comments });
       return comments;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Flag comment method
+  flagComment: async (commentId, reason, details) => {
+    try {
+      const response = await commentAPI.flagComment(commentId, reason, details);
+      return response.data;
     } catch (error) {
       throw error;
     }

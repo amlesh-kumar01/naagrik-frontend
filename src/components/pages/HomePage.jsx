@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuthStore } from '../../store';
+import { useDashboardStore } from '../../store';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
+import { LoadingCard } from '../ui/loading';
 import { colors } from '../../lib/theme';
 import { 
   AlertTriangle, 
@@ -25,8 +27,56 @@ import {
 
 const HomePage = () => {
   const { user, isAuthenticated } = useAuthStore();
+  const { publicStats, isLoading: statsLoading, fetchPublicStats } = useDashboardStore();
+  const [stats, setStats] = useState(null);
 
-  const stats = [
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    const result = await fetchPublicStats();
+    
+    if (result.success) {
+      const statsData = result.stats;
+      setStats([
+        { 
+          label: 'Issues Reported', 
+          value: statsData.total_issues?.toLocaleString() || '0', 
+          icon: AlertTriangle, 
+          color: 'text-blue-600' 
+        },
+        { 
+          label: 'Issues Resolved', 
+          value: statsData.resolved_issues?.toLocaleString() || '0', 
+          icon: CheckCircle, 
+          color: 'text-green-600' 
+        },
+        { 
+          label: 'Active Citizens', 
+          value: statsData.total_citizens?.toLocaleString() || '0', 
+          icon: Users, 
+          color: 'text-purple-600' 
+        },
+        { 
+          label: 'Response Rate', 
+          value: `${statsData.response_rate || 0}%`, 
+          icon: TrendingUp, 
+          color: 'text-orange-600' 
+        },
+      ]);
+    } else {
+      // Fallback to default stats
+      setStats([
+        { label: 'Issues Reported', value: 'N/A', icon: AlertTriangle, color: 'text-blue-600' },
+        { label: 'Issues Resolved', value: 'N/A', icon: CheckCircle, color: 'text-green-600' },
+        { label: 'Active Citizens', value: 'N/A', icon: Users, color: 'text-purple-600' },
+        { label: 'Response Rate', value: 'N/A', icon: TrendingUp, color: 'text-orange-600' },
+      ]);
+    }
+  };
+
+  const staticStats = [
     { label: 'Issues Reported', value: '2,847', icon: AlertTriangle, color: 'text-blue-600' },
     { label: 'Issues Resolved', value: '2,123', icon: CheckCircle, color: 'text-green-600' },
     { label: 'Active Citizens', value: '1,562', icon: Users, color: 'text-purple-600' },
@@ -156,22 +206,28 @@ const HomePage = () => {
       {/* Stats Section */}
       <section className="py-16 bg-white/95 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => {
-              const Icon = stat.icon;
-              return (
-                <div key={index} className="text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-lg" style={{ 
-                    background: 'linear-gradient(135deg, #B2B0E8 0%, #7A85C1 100%)' 
-                  }}>
-                    <Icon className="h-8 w-8 text-white" />
+          {statsLoading ? (
+            <div className="text-center">
+              <LoadingCard message="Loading community statistics..." />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              {(stats || staticStats).map((stat, index) => {
+                const Icon = stat.icon;
+                return (
+                  <div key={index} className="text-center">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-lg" style={{ 
+                      background: 'linear-gradient(135deg, #B2B0E8 0%, #7A85C1 100%)' 
+                    }}>
+                      <Icon className="h-8 w-8 text-white" />
+                    </div>
+                    <div className="text-3xl font-bold text-[#1A2A80] mb-1">{stat.value}</div>
+                    <div className="text-sm text-gray-600 font-medium">{stat.label}</div>
                   </div>
-                  <div className="text-3xl font-bold text-[#1A2A80] mb-1">{stat.value}</div>
-                  <div className="text-sm text-gray-600 font-medium">{stat.label}</div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 

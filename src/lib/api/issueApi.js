@@ -42,8 +42,22 @@ export const issueAPI = {
   updateIssueStatus: (issueId, status, reason) => 
     api.put(`/issues/${issueId}/status`, { status, reason }),
   voteIssue: (issueId, voteType) => api.post(`/issues/${issueId}/vote`, { voteType }),
+  removeVoteFromIssue: (issueId) => api.delete(`/issues/${issueId}/vote`),
   getCategories: () => api.get('/issues/categories'),
   deleteIssue: (issueId) => api.delete(`/issues/${issueId}`),
+  
+  // Archive issue (soft delete for resolved issues)
+  archiveIssue: (issueId, data) => api.put(`/issues/${issueId}/archive`, data),
+  
+  // Mark issue as duplicate
+  markAsDuplicate: (issueId, data) => api.put(`/issues/${issueId}/duplicate`, data),
+  
+  // Get issue history
+  getIssueHistory: (issueId) => api.get(`/issues/${issueId}/history`),
+  
+  // Restore archived issue (admin only)
+  restoreIssue: (issueId, data) => api.put(`/issues/${issueId}/restore`, data),
+  
   findSimilarIssues: (text) => api.post('/issues/find-similar', { text }),
 
   // Advanced filtering and search
@@ -101,20 +115,35 @@ export const issueAPI = {
   // Bulk operations
   bulkUpdateStatus: (data) => api.put('/issues/bulk/status', data),
 
-  // Comments
+  // Comments - Updated for nested structure
   getComments: (issueId, params = {}) => {
     const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        searchParams.append(key, value);
-      }
-    });
-    const queryString = searchParams.toString();
-    return api.get(`/issues/${issueId}/comments${queryString ? `?${queryString}` : ''}`);
+    
+    // Set default nested to true and sortBy to oldest for consistency
+    searchParams.append('nested', params.nested !== undefined ? params.nested : 'true');
+    searchParams.append('sortBy', params.sortBy || 'oldest');
+    
+    return api.get(`/comments/issues/${issueId}/comments?${searchParams.toString()}`);
   },
-  createComment: (issueId, data) => api.post(`/issues/${issueId}/comments`, data),
-  updateComment: (issueId, commentId, data) => api.put(`/issues/${issueId}/comments/${commentId}`, data),
-  deleteComment: (issueId, commentId) => api.delete(`/issues/${issueId}/comments/${commentId}`),
+
+  createComment: (issueId, data) => {
+    const payload = {
+      content: data.content
+    };
+    
+    // Add parentCommentId for replies
+    if (data.parentCommentId) {
+      payload.parentCommentId = data.parentCommentId;
+    }
+    
+    return api.post(`/comments/issues/${issueId}/comments`, payload);
+  },
+
+  updateComment: (commentId, data) => api.put(`/comments/${commentId}`, { 
+    content: data.content 
+  }),
+
+  deleteComment: (commentId) => api.delete(`/comments/${commentId}`),
 
   // Steward notes
   addStewardNote: (issueId, data) => api.post(`/stewards/issues/${issueId}/notes`, data),

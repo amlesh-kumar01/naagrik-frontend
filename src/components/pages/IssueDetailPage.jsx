@@ -8,19 +8,18 @@ import { useAuthStore } from '@/store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar } from '@/components/ui/avatar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingCard } from '@/components/ui/loading';
-import { Textarea } from '@/components/ui/textarea';
+import IssueManagementActions from '../features/IssueManagementActions';
+import VotingButtons from '../features/VotingButtons';
+import CommentSection from '../features/CommentSection';
+import { canManageIssue } from '@/lib/utils/issuePermissions';
 import { colors } from '../../lib/theme';
 import { 
   ArrowLeft, 
   MapPin, 
   Calendar, 
   User, 
-  ThumbsUp, 
-  ThumbsDown,
-  MessageCircle,
   Share2,
   MoreHorizontal,
   Camera,
@@ -30,9 +29,6 @@ import {
   CheckCircle,
   XCircle,
   Star,
-  Send,
-  Heart,
-  Flag,
   Maximize,
   Minimize
 } from 'lucide-react';
@@ -42,17 +38,12 @@ const IssueDetailPage = ({ issueId }) => {
   const { user, isAuthenticated } = useAuthStore();
   const { 
     currentIssue, 
+    comments,
     isLoading, 
     error, 
-    fetchIssue,
-    voteOnIssue,
-    comments,
-    setComments,
-    createComment 
+    fetchIssue
   } = useIssuesStore();
   
-  const [newComment, setNewComment] = useState('');
-  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [showAllMedia, setShowAllMedia] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -71,19 +62,6 @@ const IssueDetailPage = ({ issueId }) => {
     }
   };
 
-  const handleVote = async (voteType) => {
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
-    }
-
-    try {
-      await voteOnIssue(issueId, voteType);
-    } catch (error) {
-      console.error('Error voting:', error);
-    }
-  };
-
   const handleShare = () => {
     const url = window.location.href;
     if (navigator.share) {
@@ -98,23 +76,17 @@ const IssueDetailPage = ({ issueId }) => {
     }
   };
 
-  const handleCommentSubmit = async () => {
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
+  const handleStatusUpdate = (issueId, newStatus) => {
+    // Issue detail page will automatically refresh with new data
+    // since it's using fetchIssue to get the latest state
+    if (currentIssue && currentIssue.id === issueId) {
+      fetchIssue(issueId);
     }
+  };
 
-    if (!newComment.trim()) return;
-
-    setIsSubmittingComment(true);
-    try {
-      await createComment(issueId, newComment);
-      setNewComment('');
-    } catch (error) {
-      console.error('Error submitting comment:', error);
-    } finally {
-      setIsSubmittingComment(false);
-    }
+  const handleIssueRemoved = (issueId) => {
+    // Navigate back to issues list when issue is removed
+    router.push('/issues');
   };
 
   const getStatusIcon = (status) => {
@@ -363,102 +335,7 @@ const IssueDetailPage = ({ issueId }) => {
             )}
 
             {/* Comments Section */}
-            <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-[#1A2A80] flex items-center">
-                  <MessageCircle className="h-5 w-5 mr-2" />
-                  Comments ({comments?.length || 0})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {/* Add Comment */}
-                {isAuthenticated ? (
-                  <div className="mb-6 p-4 border rounded-lg bg-gray-50">
-                    <div className="flex items-start space-x-3">
-                      <Avatar className="h-8 w-8 bg-[#B2B0E8] text-white">
-                        {user?.full_name?.charAt(0) || 'U'}
-                      </Avatar>
-                      <div className="flex-1">
-                        <Textarea
-                          value={newComment}
-                          onChange={(e) => setNewComment(e.target.value)}
-                          placeholder="Add a comment..."
-                          className="mb-3 resize-none"
-                          rows={3}
-                        />
-                        <div className="flex justify-end">
-                          <Button
-                            onClick={handleCommentSubmit}
-                            disabled={!newComment.trim() || isSubmittingComment}
-                            size="sm"
-                            className="bg-[#3B38A0] hover:bg-[#1A2A80]"
-                          >
-                            <Send className="h-4 w-4 mr-2" />
-                            {isSubmittingComment ? 'Posting...' : 'Post Comment'}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mb-6 p-4 border rounded-lg bg-blue-50 text-center">
-                    <p className="text-gray-600 mb-3">Please log in to leave a comment</p>
-                    <Link href="/login">
-                      <Button size="sm" className="bg-[#3B38A0] hover:bg-[#1A2A80]">
-                        Log In
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-
-                {/* Comments List */}
-                <div className="space-y-4">
-                  {comments && comments.length > 0 ? (
-                    comments.map((comment) => (
-                      <div key={comment.id} className="flex items-start space-x-3 p-4 border rounded-lg bg-white">
-                        <Avatar className="h-8 w-8 bg-[#B2B0E8] text-white">
-                          {comment.user_name?.charAt(0) || 'U'}
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <h4 className="font-medium text-[#1A2A80]">{comment.user_name}</h4>
-                            {comment.user_reputation && (
-                              <Badge variant="secondary" className="text-xs">
-                                <Star className="h-3 w-3 mr-1" />
-                                {comment.user_reputation}
-                              </Badge>
-                            )}
-                            <span className="text-xs text-gray-500">
-                              {getTimeAgo(comment.created_at)}
-                            </span>
-                          </div>
-                          <p className="text-gray-700 leading-relaxed">{comment.content}</p>
-                          <div className="flex items-center space-x-4 mt-3">
-                            <Button variant="ghost" size="sm" className="text-gray-500 hover:text-red-500 p-0">
-                              <Heart className="h-4 w-4 mr-1" />
-                              <span className="text-xs">Like</span>
-                            </Button>
-                            <Button variant="ghost" size="sm" className="text-gray-500 hover:text-blue-500 p-0">
-                              <MessageCircle className="h-4 w-4 mr-1" />
-                              <span className="text-xs">Reply</span>
-                            </Button>
-                            <Button variant="ghost" size="sm" className="text-gray-500 hover:text-yellow-500 p-0">
-                              <Flag className="h-4 w-4 mr-1" />
-                              <span className="text-xs">Report</span>
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <MessageCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                      <p>No comments yet. Be the first to comment!</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <CommentSection issueId={currentIssue.id} />
           </div>
 
           {/* Sidebar */}
@@ -469,33 +346,18 @@ const IssueDetailPage = ({ issueId }) => {
                 <CardTitle className="text-[#1A2A80] text-lg">Actions</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Vote Score</span>
-                    <span className="font-semibold text-[#1A2A80]">
-                      {currentIssue.vote_score || 0}
-                    </span>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button
-                      onClick={() => handleVote(1)}
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 hover:bg-green-50 hover:border-green-300"
-                    >
-                      <ThumbsUp className="h-4 w-4 mr-1" />
-                      Upvote
-                    </Button>
-                    <Button
-                      onClick={() => handleVote(-1)}
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 hover:bg-red-50 hover:border-red-300"
-                    >
-                      <ThumbsDown className="h-4 w-4 mr-1" />
-                      Downvote
-                    </Button>
-                  </div>
+                <VotingButtons
+                  issueId={currentIssue.id}
+                  initialStats={{
+                    upvotes: currentIssue.upvotes || 0,
+                    downvotes: currentIssue.downvotes || 0,
+                    total_score: currentIssue.vote_score || 0,
+                    user_vote: currentIssue.user_vote
+                  }}
+                  compact={false}
+                />
+                
+                <div className="mt-4">
                   <Button
                     onClick={handleShare}
                     variant="outline"
@@ -508,6 +370,23 @@ const IssueDetailPage = ({ issueId }) => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Management Actions - Only for Stewards/Admins */}
+            {user && canManageIssue(currentIssue, user) && (
+              <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="text-[#1A2A80] text-lg">Manage Issue</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <IssueManagementActions
+                    issue={currentIssue}
+                    onStatusUpdate={handleStatusUpdate}
+                    onIssueRemoved={handleIssueRemoved}
+                    compact={false}
+                  />
+                </CardContent>
+              </Card>
+            )}
 
             {/* Issue Info */}
             <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">

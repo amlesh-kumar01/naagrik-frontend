@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingSpinner } from '@/components/ui/loading';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import ModernMapView from '@/components/features/ModernMapView';
+import InteractiveMap from '@/components/features/InteractiveMap';
 import { useIssuesStore } from '@/store';
 import { issueAPI } from '@/lib/api';
 import { 
@@ -29,7 +29,8 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import { getCurrentLocation, isValidImageType, isValidVideoType } from '@/lib/utils';
+import { isValidImageType, isValidVideoType } from '@/lib/utils';
+import { useLocationService } from '@/lib/hooks/useLocationService';
 
 const AddIssueReportPage = () => {
   const router = useRouter();
@@ -59,6 +60,7 @@ const AddIssueReportPage = () => {
   const [mapZoom, setMapZoom] = useState(13);
   
   const { createIssue } = useIssuesStore();
+  const { getCurrentLocation } = useLocationService();
 
   // Fetch categories on mount
   useEffect(() => {
@@ -117,7 +119,7 @@ const AddIssueReportPage = () => {
   const handleMapClick = useCallback((location) => {
     if (!isMapInteractive) return;
     
-    const { lat, lng } = location;
+    const { latitude: lat, longitude: lng } = location;
     setSelectedLocation({ lat, lng });
     setFormData(prev => ({
       ...prev,
@@ -132,21 +134,24 @@ const AddIssueReportPage = () => {
   const getCurrentLocationHandler = async () => {
     setIsGettingLocation(true);
     try {
-      const location = await getCurrentLocation();
+      const location = await getCurrentLocation({ 
+        showProgress: true,
+        enableHighAccuracy: true 
+      });
       setFormData(prev => ({
         ...prev,
-        locationLat: location.lat.toFixed(6),
-        locationLng: location.lng.toFixed(6),
+        locationLat: location.latitude.toFixed(6),
+        locationLng: location.longitude.toFixed(6),
       }));
-      setMapCenter([location.lat, location.lng]);
-      setSelectedLocation({ lat: location.lat, lng: location.lng });
+      setMapCenter([location.latitude, location.longitude]);
+      setSelectedLocation({ lat: location.latitude, lng: location.longitude });
       setMapZoom(15);
       
       setErrors(prev => ({ ...prev, location: '' }));
     } catch (error) {
       setErrors(prev => ({ 
         ...prev, 
-        location: 'Unable to get your location. Please enable location services or click on the map to select a location.' 
+        location: 'Unable to get your location. Please enable location services or double-click on the map to select a location.' 
       }));
     } finally {
       setIsGettingLocation(false);
@@ -392,13 +397,25 @@ const AddIssueReportPage = () => {
 
                   {showMap && (
                     <div className="mb-6">
-                      <ModernMapView
-                        issues={[]}
-                        onLocationSelect={isMapInteractive ? handleMapClick : undefined}
+                      <InteractiveMap
                         height="400px"
+                        enableLocationSelection={isMapInteractive}
                         showCurrentLocation={true}
-                        interactive={isMapInteractive}
-                        selectableLocation={isMapInteractive}
+                        onLocationSelect={isMapInteractive ? handleMapClick : undefined}
+                        onLocationConfirm={(location, address) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            locationLat: location.latitude.toFixed(6),
+                            locationLng: location.longitude.toFixed(6),
+                            address: address || prev.address
+                          }));
+                          setSelectedLocation({ 
+                            lat: location.latitude, 
+                            lng: location.longitude 
+                          });
+                          setErrors(prev => ({ ...prev, location: '' }));
+                        }}
+                        className="rounded-lg overflow-hidden border shadow-sm"
                       />
                       
                       {/* Map Instructions */}
@@ -406,7 +423,7 @@ const AddIssueReportPage = () => {
                         <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                           <div className="flex items-center space-x-2">
                             <MousePointer className="h-5 w-5 text-blue-600" />
-                            <p className="text-blue-800 font-medium">Click anywhere on the map to select the issue location</p>
+                            <p className="text-blue-800 font-medium">Double-click anywhere on the map to pin the issue location</p>
                           </div>
                         </div>
                       )}

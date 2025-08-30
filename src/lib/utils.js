@@ -23,31 +23,6 @@ export const formatRelativeTime = (date) => {
   return formatDistanceToNow(new Date(date), { addSuffix: true });
 };
 
-// Map utilities
-export const getDistanceFromLatLng = (lat1, lng1, lat2, lng2) => {
-  const R = 6371; // Radius of the earth in km
-  const dLat = deg2rad(lat2 - lat1);
-  const dLng = deg2rad(lng2 - lng1);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-    Math.sin(dLng / 2) * Math.sin(dLng / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c; // Distance in km
-};
-
-const deg2rad = (deg) => {
-  return deg * (Math.PI / 180);
-};
-
-// Format distance
-export const formatDistance = (distance) => {
-  if (distance < 1) {
-    return `${Math.round(distance * 1000)}m`;
-  }
-  return `${distance.toFixed(1)}km`;
-};
-
 // Status color utilities
 export const getStatusColor = (status) => {
   const colors = {
@@ -171,33 +146,6 @@ export const removeFromStorage = (key) => {
   } catch (error) {
     console.error(`Error removing ${key} from localStorage:`, error);
   }
-};
-
-// Geolocation utilities
-export const getCurrentLocation = () => {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error('Geolocation is not supported by this browser.'));
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        resolve({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
-      },
-      (error) => {
-        reject(error);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 600000, // 10 minutes
-      }
-    );
-  });
 };
 
 // Text utilities

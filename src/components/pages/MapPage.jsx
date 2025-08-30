@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import ModernMapView from '@/components/features/ModernMapView';
+import InteractiveMap from '@/components/features/InteractiveMap';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { useIssuesStore } from '@/store';
 import { colors } from '../../lib/theme';
@@ -40,18 +40,25 @@ const MapPage = () => {
             </p>
           </div>
 
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border-0">
-            <ModernMapView 
-              issues={issues.filter(issue => issue.latitude && issue.longitude)}
-              onLocationSelect={(location) => {
-                // Optional: Handle location selection if needed
-                console.log('Location selected:', location);
-              }}
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border-0 overflow-hidden">
+            <InteractiveMap 
+              issues={issues.filter(issue => issue.location_lat && issue.location_lng).map(issue => ({
+                id: issue.id,
+                title: issue.title,
+                description: issue.description,
+                latitude: parseFloat(issue.location_lat),
+                longitude: parseFloat(issue.location_lng),
+                status: issue.status,
+                priority: issue.priority || 'MEDIUM',
+                category: issue.category_name || 'General',
+                address: issue.address,
+                created_at: issue.created_at
+              }))}
               onIssueClick={handleIssueClick}
               height="70vh"
               showCurrentLocation={true}
-              interactive={true}
-              selectableLocation={false}
+              enableLocationSelection={false}
+              className="rounded-2xl"
             />
           </div>
         </main>

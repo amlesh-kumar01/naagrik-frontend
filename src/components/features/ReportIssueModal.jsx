@@ -20,7 +20,8 @@ import {
   AlertTriangle,
   CheckCircle
 } from 'lucide-react';
-import { getCurrentLocation, isValidImageType, isValidVideoType } from '@/lib/utils';
+import { isValidImageType, isValidVideoType } from '@/lib/utils';
+import { useLocationService } from '@/lib/hooks/useLocationService';
 
 const ReportIssueModal = ({ isOpen, onClose, initialLocation }) => {
   const [formData, setFormData] = useState({
@@ -42,6 +43,7 @@ const ReportIssueModal = ({ isOpen, onClose, initialLocation }) => {
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   
   const { createIssue } = useIssuesStore();
+  const { getCurrentLocation } = useLocationService();
 
   // Fetch categories on mount
   useEffect(() => {
@@ -159,15 +161,17 @@ const ReportIssueModal = ({ isOpen, onClose, initialLocation }) => {
   const getCurrentLocationHandler = async () => {
     setIsGettingLocation(true);
     try {
-      const location = await getCurrentLocation();
+      const location = await getCurrentLocation({ 
+        showProgress: true,
+        enableHighAccuracy: true 
+      });
       setFormData(prev => ({
         ...prev,
-        locationLat: location.lat,
-        locationLng: location.lng,
+        locationLat: location.latitude,
+        locationLng: location.longitude,
       }));
       
-      // Reverse geocode to get address (you can implement this)
-      // For now, we'll just update the coordinates
+      setErrors(prev => ({ ...prev, location: '' }));
     } catch (error) {
       setErrors(prev => ({ 
         ...prev, 

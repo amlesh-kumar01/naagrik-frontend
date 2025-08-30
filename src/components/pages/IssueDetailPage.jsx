@@ -33,6 +33,7 @@ import {
   Maximize,
   Minimize
 } from 'lucide-react';
+import InteractiveMap from '../features/InteractiveMap';
 
 const IssueDetailPage = ({ issueId }) => {
   const router = useRouter();
@@ -446,19 +447,51 @@ const IssueDetailPage = ({ issueId }) => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="aspect-video rounded-lg bg-gray-100 flex items-center justify-center text-gray-500">
-                    {/* TODO: Integrate with map component */}
-                    <div className="text-center">
-                      <MapPin className="h-8 w-8 mx-auto mb-2" />
-                      <p className="text-sm">Map View</p>
-                      <p className="text-xs text-gray-400">
-                        {currentIssue.location_lat}, {currentIssue.location_lng}
-                      </p>
-                    </div>
-                  </div>
+                  <InteractiveMap
+                    initialLocation={{
+                      latitude: parseFloat(currentIssue.location_lat),
+                      longitude: parseFloat(currentIssue.location_lng)
+                    }}
+                    height="250px"
+                    enableLocationSelection={false}
+                    showCurrentLocation={true}
+                    issues={[{
+                      id: currentIssue.id,
+                      title: currentIssue.title,
+                      description: currentIssue.description,
+                      latitude: parseFloat(currentIssue.location_lat),
+                      longitude: parseFloat(currentIssue.location_lng),
+                      status: currentIssue.status,
+                      priority: currentIssue.priority || 'MEDIUM',
+                      category: currentIssue.category_name || 'General',
+                      address: currentIssue.address,
+                      created_at: currentIssue.created_at
+                    }]}
+                    onIssueClick={() => {}} // Already on issue detail page
+                    className="mb-3"
+                  />
                   {currentIssue.address && (
-                    <p className="mt-3 text-sm text-gray-600">{currentIssue.address}</p>
+                    <div className="flex items-start space-x-2 text-sm text-gray-600 mt-3">
+                      <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                      <span className="flex-1">{currentIssue.address}</span>
+                    </div>
                   )}
+                  <div className="flex items-center justify-between text-xs text-gray-500 mt-2 pt-2 border-t">
+                    <span>
+                      {parseFloat(currentIssue.location_lat).toFixed(6)}, {parseFloat(currentIssue.location_lng).toFixed(6)}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const url = `https://www.google.com/maps?q=${currentIssue.location_lat},${currentIssue.location_lng}`;
+                        window.open(url, '_blank');
+                      }}
+                      className="text-xs h-6 px-2"
+                    >
+                      Open in Maps
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}

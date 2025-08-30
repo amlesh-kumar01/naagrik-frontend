@@ -238,3 +238,61 @@ body {
     max-width: 1536px;
   }
 }
+
+/* Loading Animation */
+@keyframes loading-bar {
+  0% { 
+    width: 0%; 
+    margin-left: 0%; 
+  }
+  50% { 
+    width: 75%; 
+    margin-left: 12.5%; 
+  }
+  100% { 
+    width: 0%; 
+    margin-left: 100%; 
+  }
+}
+
+/* Professional Button Styles */
+button, .button-component {
+  position: relative;
+  overflow: hidden;
+}
+
+button:hover, .button-component:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+}
+
+button:active, .button-component:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Smooth gradient transitions for buttons */
+button[style*="linear-gradient"], .button-component[style*="linear-gradient"] {
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Focus states for accessibility */
+button:focus-visible, .button-component:focus-visible {
+  outline: 2px solid var(--color-primary-400);
+  outline-offset: 2px;
+}
+
+/* Disabled state styling */
+button:disabled, .button-component:disabled {
+  opacity: 0.6;
+  transform: none !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+}

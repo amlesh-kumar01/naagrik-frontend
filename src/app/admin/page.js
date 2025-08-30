@@ -1,4 +1,4 @@
-import AdminDashboardPage from '../../../components/pages/AdminDashboardPage';
+import AdminDashboardPage from '../../components/pages/AdminDashboardPage.jsx';
 
 export const metadata = {
   title: 'Admin Dashboard - Naagrik',

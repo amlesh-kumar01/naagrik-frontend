@@ -66,7 +66,8 @@ const Header = () => {
     navigationItems.push({ name: 'Become Steward', href: '/steward/apply', icon: Award });
   }
 
-  if (user?.role === 'STEWARD' || user?.role === 'SUPER_ADMIN') {
+  // Only show steward dashboard for actual stewards and super admins
+  if (user && (user.role === 'STEWARD' || user.role === 'SUPER_ADMIN')) {
     navigationItems.push({ name: 'Steward Dashboard', href: '/steward', icon: Shield });
   }
 
@@ -337,7 +338,7 @@ const Header = () => {
                           <User className="mr-3 h-4 w-4" style={{ color: colors.primary[400] }} />
                           Your Profile
                         </Link>
-                        {user.role === 'CITIZEN' && (
+                        {user && user.role === 'CITIZEN' && (
                           <Link
                             href="/steward/apply"
                             className="flex items-center px-4 py-2 text-sm rounded-lg transition-colors"

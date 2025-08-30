@@ -10,7 +10,6 @@ export const useUIStore = create((set) => ({
 
   // Loading states
   isLoadingIssues: false,
-  isLoadingComments: false,
 
   // Modal states
   isReportModalOpen: false,
@@ -31,7 +30,6 @@ export const useUIStore = create((set) => ({
   setMapViewport: (viewport) => set({ mapViewport: viewport }),
 
   setLoadingIssues: (loading) => set({ isLoadingIssues: loading }),
-  setLoadingComments: (loading) => set({ isLoadingComments: loading }),
 
   openReportModal: () => set({ isReportModalOpen: true }),
   closeReportModal: () => set({ isReportModalOpen: false }),

@@ -1,12 +1,11 @@
 import { create } from 'zustand';
-import { issueAPI, commentAPI } from '../../lib/api';
+import { issueAPI } from '../../lib/api';
 
 // Issues Store (exactly from original index.js)
 export const useIssuesStore = create((set, get) => ({
   issues: [],
   categories: [],
   currentIssue: null,
-  comments: [],
   isLoading: false,
   error: null,
   pagination: null,
@@ -15,7 +14,6 @@ export const useIssuesStore = create((set, get) => ({
   setIssues: (issues) => set({ issues }),
   setCategories: (categories) => set({ categories }),
   setCurrentIssue: (issue) => set({ currentIssue: issue }),
-  setComments: (comments) => set({ comments }),
   setLoading: (loading) => set({ isLoading: loading }),
   setError: (error) => set({ error }),
   setPagination: (pagination) => set({ pagination }),
@@ -39,23 +37,6 @@ export const useIssuesStore = create((set, get) => ({
   removeIssue: (issueId) => set(state => ({
     issues: state.issues.filter(issue => issue.id !== issueId),
     currentIssue: state.currentIssue?.id === issueId ? null : state.currentIssue
-  })),
-
-  // Add comment to current issue
-  addComment: (comment) => set(state => ({ 
-    comments: [...state.comments, comment] 
-  })),
-
-  // Update comment
-  updateComment: (commentId, updates) => set(state => ({
-    comments: state.comments.map(comment => 
-      comment.id === commentId ? { ...comment, ...updates } : comment
-    )
-  })),
-
-  // Remove comment
-  removeComment: (commentId) => set(state => ({
-    comments: state.comments.filter(comment => comment.id !== commentId)
   })),
 
   // Create new issue with media upload support
@@ -138,12 +119,8 @@ export const useIssuesStore = create((set, get) => ({
       // Axios interceptor already extracts response.data
       const issue = response.issue || response.data?.issue || response;
       
-      // Set comments from the issue data if available
-      const comments = issue.comments || [];
-      
       set({ 
         currentIssue: issue,
-        comments: comments,
         isLoading: false,
         error: null
       });
@@ -321,46 +298,6 @@ export const useIssuesStore = create((set, get) => ({
     try {
       const response = await issueAPI.getIssueHistory(issueId);
       return response.data.history;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // Create comment
-  createComment: async (issueId, content) => {
-    try {
-      const response = await commentAPI.createComment(issueId, content);
-      const newComment = response.comment || response.data?.comment || response;
-      
-      // Add comment to current comments list
-      set(state => ({
-        comments: [...state.comments, newComment]
-      }));
-      
-      return newComment;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // Fetch comments for an issue
-  fetchComments: async (issueId) => {
-    try {
-      const response = await commentAPI.getComments(issueId);
-      const comments = response.comments || response.data?.comments || response;
-      
-      set({ comments: comments });
-      return comments;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // Flag comment method
-  flagComment: async (commentId, reason, details) => {
-    try {
-      const response = await commentAPI.flagComment(commentId, reason, details);
-      return response.data;
     } catch (error) {
       throw error;
     }

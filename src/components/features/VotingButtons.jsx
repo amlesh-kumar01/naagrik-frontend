@@ -90,31 +90,35 @@ const VotingButtons = ({
 
   if (compact) {
     return (
-      <div className={`flex items-center space-x-1 ${className}`}>
+      <div className={`flex items-center space-x-2 ${className}`}>
         <Button
-          variant={hasUserVoted('UPVOTE') ? 'default' : 'outline'}
+          variant={hasUserVoted('UPVOTE') ? 'default' : 'ghost'}
           size="sm"
           onClick={() => handleVote('UPVOTE')}
           disabled={voting}
-          className="px-2 py-1"
+          className={`px-2 py-1 h-8 ${
+            hasUserVoted('UPVOTE') 
+              ? 'bg-green-600 hover:bg-green-700 text-white' 
+              : 'hover:bg-green-50 hover:text-green-700'
+          }`}
         >
           <ThumbsUp className="h-3 w-3 mr-1" />
-          {stats.upvotes}
+          <span className="font-medium">{stats.upvotes || 0}</span>
         </Button>
         
-        <span className="text-sm font-medium text-gray-600 px-2">
-          {stats.total_score}
-        </span>
-        
         <Button
-          variant={hasUserVoted('DOWNVOTE') ? 'default' : 'outline'}
+          variant={hasUserVoted('DOWNVOTE') ? 'default' : 'ghost'}
           size="sm"
           onClick={() => handleVote('DOWNVOTE')}
           disabled={voting}
-          className="px-2 py-1"
+          className={`px-2 py-1 h-8 ${
+            hasUserVoted('DOWNVOTE') 
+              ? 'bg-red-600 hover:bg-red-700 text-white' 
+              : 'hover:bg-red-50 hover:text-red-700'
+          }`}
         >
           <ThumbsDown className="h-3 w-3 mr-1" />
-          {stats.downvotes}
+          <span className="font-medium">{stats.downvotes || 0}</span>
         </Button>
       </div>
     );

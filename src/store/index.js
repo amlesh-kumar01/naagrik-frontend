@@ -8,6 +8,7 @@ import { useZoneStore } from './stores/zoneStore';
 import { useBadgeStore } from './stores/badgeStore';
 import { useDashboardStore } from './stores/dashboardStore';
 import { useAdminStore } from './stores/adminStore';
+import useCommentsStore from './stores/commentsStore';
 
 // Re-export all stores for backward compatibility
 export { useAuthStore };
@@ -19,3 +20,4 @@ export { useZoneStore };
 export { useBadgeStore };
 export { useDashboardStore };
 export { useAdminStore };
+export { useCommentsStore };

@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuthStore } from '@/store';
-import { useIssuesStore } from '@/store';
-import { issueAPI, commentAPI } from '@/lib/api';
+import { useAuthStore, useCommentsStore } from '@/store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,37 +21,34 @@ import { toast } from 'react-hot-toast';
 
 const CommentSection = ({ issueId, className = '' }) => {
   const { user, isAuthenticated } = useAuthStore();
-  const [comments, setComments] = useState([]);
+  const {
+    getIssueComments,
+    isCommentsLoading,
+    fetchComments,
+    addComment,
+    updateComment,
+    deleteComment,
+    flagComment,
+    flaggingComment,
+    flagReason,
+    flagDetails,
+    submitting,
+    sortBy,
+    setFlaggingComment,
+    setFlagReason,
+    setFlagDetails,
+    setSortBy,
+    resetFlagModal
+  } = useCommentsStore();
+
   const [newComment, setNewComment] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [sortBy, setSortBy] = useState('newest');
-  const [flaggingComment, setFlaggingComment] = useState(null);
-  const [flagReason, setFlagReason] = useState('');
-  const [flagDetails, setFlagDetails] = useState('');
+  
+  const comments = getIssueComments(issueId);
+  const loading = isCommentsLoading(issueId);
 
   useEffect(() => {
-    fetchComments();
-  }, [issueId, sortBy]);
-
-  const fetchComments = async () => {
-    try {
-      setLoading(true);
-      const response = await issueAPI.getComments(issueId, { 
-        sortBy,
-        nested: 'true' 
-      });
-      
-      // Handle the new nested response structure
-      const commentsData = response.data?.data?.comments || response.data?.comments || response.comments || [];
-      setComments(commentsData);
-    } catch (error) {
-      console.error('Failed to fetch comments:', error);
-      toast.error('Failed to load comments');
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchComments(issueId, { sortBy });
+  }, [issueId, sortBy, fetchComments]);
 
   const handleAddComment = async (parentCommentId = null) => {
     if (!isAuthenticated) {
@@ -66,41 +61,13 @@ const CommentSection = ({ issueId, className = '' }) => {
       return;
     }
 
-    setSubmitting(true);
     try {
-      const response = await issueAPI.createComment(issueId, {
-        content: newComment.trim(),
-        parentCommentId: parentCommentId
-      });
-
-      // Handle the new response structure
-      const newCommentData = response.data?.data?.comment || response.data?.comment || response.comment;
-      
-      if (parentCommentId) {
-        // Add reply to parent comment
-        setComments(prevComments =>
-          prevComments.map(comment =>
-            comment.id === parentCommentId
-              ? {
-                  ...comment,
-                  replies: [...(comment.replies || []), newCommentData],
-                  reply_count: (comment.reply_count || 0) + 1
-                }
-              : comment
-          )
-        );
-      } else {
-        // Add new top-level comment
-        setComments(prevComments => [newCommentData, ...prevComments]);
-      }
-      
+      await addComment(issueId, newComment.trim(), parentCommentId);
       setNewComment('');
       toast.success('Comment added successfully');
     } catch (error) {
       console.error('Failed to add comment:', error);
       toast.error('Failed to add comment');
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -116,37 +83,7 @@ const CommentSection = ({ issueId, className = '' }) => {
     }
 
     try {
-      const response = await issueAPI.createComment(issueId, {
-        content: replyContent.trim(),
-        parentCommentId: parentCommentId
-      });
-
-      // Handle the response and update local state
-      const newReplyData = response.data?.data?.comment || response.data?.comment || response.comment;
-
-      // Recursively add reply to the correct parent comment
-      const addReplyToComment = (comments, parentId, newReply) => {
-        return comments.map(comment => {
-          if (comment.id === parentId) {
-            return {
-              ...comment,
-              replies: [...(comment.replies || []), newReply],
-              reply_count: (comment.reply_count || 0) + 1
-            };
-          }
-          
-          if (comment.replies && comment.replies.length > 0) {
-            return {
-              ...comment,
-              replies: addReplyToComment(comment.replies, parentId, newReply)
-            };
-          }
-          
-          return comment;
-        });
-      };
-
-      setComments(prevComments => addReplyToComment(prevComments, parentCommentId, newReplyData));
+      await addComment(issueId, replyContent.trim(), parentCommentId);
       toast.success('Reply added successfully');
     } catch (error) {
       console.error('Failed to add reply:', error);
@@ -158,24 +95,7 @@ const CommentSection = ({ issueId, className = '' }) => {
     if (!confirm('Are you sure you want to delete this comment? This will also delete all replies.')) return;
 
     try {
-      await commentAPI.deleteComment(commentId);
-      
-      // Remove comment and its replies from local state
-      setComments(prevComments => {
-        return comments.filter(comment => {
-          if (comment.id === commentId) {
-            return false; // Remove this comment
-          }
-          
-          // Also check nested replies recursively
-          if (comment.replies) {
-            comment.replies = comment.replies.filter(reply => reply.id !== commentId);
-          }
-          
-          return true;
-        });
-      });
-      
+      await deleteComment(commentId, issueId);
       toast.success('Comment deleted successfully');
     } catch (error) {
       console.error('Failed to delete comment:', error);
@@ -186,8 +106,6 @@ const CommentSection = ({ issueId, className = '' }) => {
   const handleFlagComment = (commentId) => {
     console.log('Flagging comment:', commentId);
     setFlaggingComment(commentId);
-    setFlagReason('');
-    setFlagDetails('');
   };
 
   const submitFlag = async () => {
@@ -196,21 +114,10 @@ const CommentSection = ({ issueId, className = '' }) => {
       return;
     }
 
-    console.log('Submitting flag:', { commentId: flaggingComment, reason: flagReason, details: flagDetails });
-
     try {
-      await commentAPI.flagComment(flaggingComment, {
-        reason: flagReason,
-        details: flagDetails
-      });
-      
+      await flagComment(flaggingComment, flagReason, flagDetails, issueId);
       toast.success('Comment flagged for review');
-      setFlaggingComment(null);
-      setFlagReason('');
-      setFlagDetails('');
-      
-      // Refresh comments to show updated flag status
-      fetchComments();
+      resetFlagModal();
     } catch (error) {
       console.error('Error flagging comment:', error);
       toast.error(error.response?.data?.error?.message || 'Failed to flag comment');
@@ -277,7 +184,7 @@ const CommentSection = ({ issueId, className = '' }) => {
             <div className="flex justify-end space-x-3">
               <Button
                 variant="outline"
-                onClick={() => setFlaggingComment(null)}
+                onClick={resetFlagModal}
               >
                 Cancel
               </Button>
@@ -391,7 +298,7 @@ const CommentSection = ({ issueId, className = '' }) => {
 const CommentItem = ({ comment, onDelete, onFlag, onReply, currentUser, formatTimeAgo, isNested = false }) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [replyText, setReplyText] = useState('');
-  const [submittingReply, setSubmittingReply] = useState(false);
+  const { submitting } = useCommentsStore();
 
   const canDelete = currentUser && (
     currentUser.id === comment.user_id || 
@@ -401,7 +308,6 @@ const CommentItem = ({ comment, onDelete, onFlag, onReply, currentUser, formatTi
   const handleReply = async () => {
     if (!replyText.trim()) return;
 
-    setSubmittingReply(true);
     try {
       await onReply(comment.id, replyText.trim());
       setReplyText('');
@@ -409,8 +315,6 @@ const CommentItem = ({ comment, onDelete, onFlag, onReply, currentUser, formatTi
     } catch (error) {
       console.error('Error adding reply:', error);
       toast.error('Failed to add reply');
-    } finally {
-      setSubmittingReply(false);
     }
   };
 
@@ -516,9 +420,9 @@ const CommentItem = ({ comment, onDelete, onFlag, onReply, currentUser, formatTi
                 <Button
                   size="sm"
                   onClick={handleReply}
-                  disabled={submittingReply || !replyText.trim()}
+                  disabled={submitting || !replyText.trim()}
                 >
-                  {submittingReply ? 'Replying...' : 'Reply'}
+                  {submitting ? 'Replying...' : 'Reply'}
                 </Button>
               </div>
             </div>

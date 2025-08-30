@@ -83,64 +83,86 @@ const IssueCard = ({
   if (compact) {
     return (
       <Card 
-        className={`hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.01] ${className}`}
+        className={`hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.01] border border-gray-200 bg-white ${className}`}
         onClick={handleCardClick}
       >
         <CardContent className="p-4">
-          <div className="flex items-start space-x-3">
+          <div className="flex space-x-4">
             {/* Thumbnail */}
-            {issue.media_url && issue.media_type?.startsWith('image/') ? (
-              <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                <img
-                  src={issue.media_url}
-                  alt={issue.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ) : (
-              <div className={`w-3 h-3 rounded-full mt-2 ${getStatusBadgeColor(issue.status)}`} />
-            )}
+            <div className="flex-shrink-0">
+              {issue.media && issue.media.length > 0 && issue.media[0].url ? (
+                <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 border">
+                  <img
+                    src={issue.media[0].url}
+                    alt={issue.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 flex items-center justify-center">
+                  <Camera className="h-6 w-6 text-blue-400" />
+                </div>
+              )}
+            </div>
             
             {/* Content */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between">
+              <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
-                  <h3 className="font-medium text-gray-900 hover:text-blue-600 line-clamp-1">
+                  <h3 className="font-semibold text-gray-900 hover:text-[#1A2A80] line-clamp-1 text-base">
                     {issue.title}
                   </h3>
-                  <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                  <p className="text-sm text-gray-600 mt-1 line-clamp-2 leading-relaxed">
                     {issue.description}
                   </p>
                 </div>
-                <Badge className={`ml-2 ${getPriorityColor(issue.priority)}`}>
-                  {issue.priority}
-                </Badge>
+                <div className="flex items-center space-x-2 ml-3">
+                  <Badge 
+                    variant="outline" 
+                    className={`text-xs px-2 py-1 ${getStatusColor(issue.status)}`}
+                  >
+                    {issue.status}
+                  </Badge>
+                </div>
               </div>
               
-              <div className="flex items-center justify-between mt-3">
-                <div className="flex items-center space-x-4 text-sm text-gray-500">
+              {/* Location */}
+              {showLocation && issue.address && (
+                <div className="flex items-center text-xs text-gray-500 mb-3">
+                  <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+                  <span className="line-clamp-1">{issue.address}</span>
+                </div>
+              )}
+              
+              {/* Footer Actions */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3 text-xs text-gray-500">
+                  <VotingButtons
+                    issueId={issue.id}
+                    initialStats={{
+                      upvotes: issue.upvotes || 0,
+                      downvotes: issue.downvotes || 0,
+                      total_score: issue.vote_score || 0,
+                      user_vote: issue.user_vote
+                    }}
+                    compact={true}
+                  />
                   <span className="flex items-center">
-                    <VotingButtons
-                      issueId={issue.id}
-                      initialStats={{
-                        upvotes: issue.upvotes || 0,
-                        downvotes: issue.downvotes || 0,
-                        total_score: issue.vote_score || 0,
-                        user_vote: issue.user_vote
-                      }}
-                      compact={true}
-                      className="text-xs"
-                    />
-                  </span>
-                  <span className="flex items-center">
-                    <MessageCircle className="h-4 w-4 mr-1" />
+                    <MessageCircle className="h-3 w-3 mr-1" />
                     {issue.comments_count || 0}
                   </span>
                   <span>{formatRelativeTime(issue.created_at)}</span>
                 </div>
-                <Badge variant="outline" className={getStatusColor(issue.status)}>
-                  {issue.status}
-                </Badge>
+                
+                {/* Management Actions */}
+                {showManagementActions && canManage && (
+                  <IssueManagementActions
+                    issue={issue}
+                    onStatusUpdate={onStatusUpdate}
+                    onIssueRemoved={onIssueRemoved}
+                    compact={true}
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -151,7 +173,7 @@ const IssueCard = ({
 
   return (
     <Card 
-      className={`hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02] ${className}`}
+      className={`hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02] border border-gray-200 bg-white ${className}`}
       onClick={handleCardClick}
     >
       <CardContent className="p-6">
@@ -159,50 +181,44 @@ const IssueCard = ({
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-2">
-              <Badge className={getPriorityColor(issue.priority)}>
-                {issue.priority} Priority
-              </Badge>
-              <Badge variant="outline" className={getStatusColor(issue.status)}>
+              <Badge 
+                variant="outline" 
+                className={`text-xs px-2 py-1 ${getStatusColor(issue.status)}`}
+              >
                 <div className="flex items-center space-x-1">
                   {getStatusIcon(issue.status)}
                   <span>{issue.status}</span>
                 </div>
               </Badge>
-              <span className="text-sm text-gray-500">#{issue.id}</span>
+              <Badge className={`text-xs px-2 py-1 ${getPriorityColor(issue.priority)}`}>
+                {issue.priority}
+              </Badge>
             </div>
             
-            <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 line-clamp-2 mb-2">
+            <h3 className="text-lg font-semibold text-gray-900 hover:text-[#1A2A80] line-clamp-2 mb-2 leading-snug">
               {issue.title}
             </h3>
             
-            <p className="text-gray-600 line-clamp-3">
+            <p className="text-gray-600 line-clamp-2 text-sm leading-relaxed">
               {issue.description}
             </p>
           </div>
         </div>
 
-        {/* Media */}
-        {issue.media_url && (
+        {/* Media Thumbnail */}
+        {issue.media && issue.media.length > 0 && issue.media[0].url && (
           <div className="mb-4">
-            <div className="relative rounded-lg overflow-hidden bg-gray-100 group">
-              {issue.media_type?.startsWith('image/') ? (
-                <img
-                  src={issue.media_url}
-                  alt={issue.title}
-                  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-200"
-                />
-              ) : (
-                <div className="w-full h-48 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-                  <div className="text-center">
-                    <Camera className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <span className="text-gray-500 text-sm">Media attachment</span>
-                  </div>
-                </div>
-              )}
-              {/* Optional overlay with media count if multiple images */}
-              {issue.media_count > 1 && (
+            <div className="relative rounded-lg overflow-hidden bg-gray-100 group h-32">
+              <img
+                src={issue.media[0].url}
+                alt={issue.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+              />
+              {/* Media count overlay */}
+              {issue.media.length > 1 && (
                 <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
-                  +{issue.media_count - 1} more
+                  <Camera className="h-3 w-3 inline mr-1" />
+                  {issue.media.length}
                 </div>
               )}
             </div>
@@ -211,26 +227,26 @@ const IssueCard = ({
 
         {/* Location */}
         {showLocation && issue.address && (
-          <div className="flex items-center text-sm text-gray-600 mb-4">
-            <MapPin className="h-4 w-4 mr-1" />
+          <div className="flex items-center text-sm text-gray-600 mb-4 bg-gray-50 px-3 py-2 rounded-lg">
+            <MapPin className="h-4 w-4 mr-2 text-gray-500 flex-shrink-0" />
             <span className="line-clamp-1">{issue.address}</span>
           </div>
         )}
 
         {/* Category */}
         <div className="mb-4">
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="secondary" className="text-xs px-3 py-1 bg-blue-50 text-blue-700 border-blue-200">
             {issue.category}
           </Badge>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-4 border-t">
+        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
           {/* User Info */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <Avatar className="h-8 w-8">
               <AvatarImage src={issue.reporter?.avatar} alt={issue.reporter?.name} />
-              <AvatarFallback>
+              <AvatarFallback className="bg-[#1A2A80] text-white text-xs">
                 {issue.reporter?.name?.charAt(0)?.toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
@@ -245,34 +261,41 @@ const IssueCard = ({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
+            {/* Voting */}
             {showVoteButton && (
-              <VotingButtons
-                issueId={issue.id}
-                initialStats={{
-                  upvotes: issue.upvotes || 0,
-                  downvotes: issue.downvotes || 0,
-                  total_score: issue.vote_score || 0,
-                  user_vote: issue.user_vote
-                }}
-                compact={true}
-                className="flex-shrink-0"
-              />
+              <div className="flex items-center">
+                <VotingButtons
+                  issueId={issue.id}
+                  initialStats={{
+                    upvotes: issue.upvotes || 0,
+                    downvotes: issue.downvotes || 0,
+                    total_score: issue.vote_score || 0,
+                    user_vote: issue.user_vote
+                  }}
+                  compact={true}
+                />
+              </div>
             )}
             
+            {/* Comments */}
             <Link href={`/issues/${issue.id}`}>
-              <Button variant="outline" size="sm" className="flex items-center space-x-1 hover:bg-blue-50 hover:border-blue-200">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex items-center space-x-1 text-gray-600 hover:text-[#1A2A80] hover:bg-blue-50"
+              >
                 <MessageCircle className="h-4 w-4" />
-                <span>{issue.comments_count || 0}</span>
-                <span className="hidden sm:inline">Comments</span>
+                <span className="font-medium">{issue.comments_count || 0}</span>
               </Button>
             </Link>
             
+            {/* Share */}
             <Button
               variant="ghost"
               size="sm"
               onClick={handleShare}
-              className="flex items-center space-x-1"
+              className="text-gray-600 hover:text-[#1A2A80] hover:bg-blue-50"
             >
               <Share2 className="h-4 w-4" />
             </Button>

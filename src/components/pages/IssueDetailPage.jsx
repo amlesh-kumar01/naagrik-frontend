@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useIssuesStore } from '@/store';
 import { useAuthStore } from '@/store';
+import { useCommentsStore } from '@/store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -38,11 +39,11 @@ const IssueDetailPage = ({ issueId }) => {
   const { user, isAuthenticated } = useAuthStore();
   const { 
     currentIssue, 
-    comments,
     isLoading, 
     error, 
     fetchIssue
   } = useIssuesStore();
+  const { getIssueComments } = useCommentsStore();
   
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [showAllMedia, setShowAllMedia] = useState(false);
@@ -423,7 +424,7 @@ const IssueDetailPage = ({ issueId }) => {
                   )}
                   <div className="flex justify-between">
                     <span className="text-gray-600">Comments:</span>
-                    <span className="font-medium">{comments?.length || 0}</span>
+                    <span className="font-medium">{getIssueComments(issueId)?.length || 0}</span>
                   </div>
                   {currentIssue.media && currentIssue.media.length > 0 && (
                     <div className="flex justify-between">

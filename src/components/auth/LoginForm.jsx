@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Alert, AlertDescription } from '../ui/alert';
 import { LoadingSpinner } from '../ui/loading';
 import { validateEmail, getValidationError } from '../../lib/validation';
+import { colors } from '../../lib/theme';
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({
@@ -81,12 +82,12 @@ const LoginForm = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" style={{
-      background: 'linear-gradient(135deg, #B2B0E8 0%, #7A85C1 50%, #3B38A0 100%)'
+      background: colors.gradients.primary
     }}>
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="mx-auto h-16 w-16 bg-white rounded-full flex items-center justify-center mb-6 shadow-xl">
-            <svg className="h-8 w-8 text-[#3B38A0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-8 w-8" style={{ color: colors.primary[400] }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
           </div>
@@ -100,7 +101,7 @@ const LoginForm = () => {
 
         <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
           <CardHeader className="text-center pb-4">
-            <CardTitle className="text-2xl font-semibold text-[#1A2A80]">Sign in to your account</CardTitle>
+            <CardTitle className="text-2xl font-semibold" style={{ color: colors.primary[500] }}>Sign in to your account</CardTitle>
           </CardHeader>
           <CardContent className="p-8">
             <form className="space-y-6" onSubmit={handleSubmit}>
@@ -173,13 +174,8 @@ const LoginForm = () => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 px-4 rounded-lg font-medium text-white transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7A85C1]"
-                style={{
-                  background: isLoading 
-                    ? 'linear-gradient(135deg, #B2B0E8 0%, #7A85C1 100%)' 
-                    : 'linear-gradient(135deg, #3B38A0 0%, #1A2A80 100%)',
-                  boxShadow: '0 4px 15px rgba(26, 42, 128, 0.3)'
-                }}
+                variant="primary"
+                className="w-full py-3 px-4 font-medium"
               >
                 {isLoading ? (
                   <>

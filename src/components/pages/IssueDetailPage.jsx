@@ -12,6 +12,7 @@ import { Avatar } from '@/components/ui/avatar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingCard } from '@/components/ui/loading';
 import { Textarea } from '@/components/ui/textarea';
+import { colors } from '../../lib/theme';
 import { 
   ArrowLeft, 
   MapPin, 
@@ -214,14 +215,17 @@ const IssueDetailPage = ({ issueId }) => {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)' }}>
+    <div className="min-h-screen" style={{ background: colors.gradients.secondary }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back Navigation */}
         <div className="mb-6">
           <Button
             variant="ghost"
             onClick={() => router.back()}
-            className="text-[#3B38A0] hover:text-[#1A2A80]"
+            style={{ color: colors.primary[400] }}
+            className="transition-colors hover:opacity-80"
+            onMouseEnter={(e) => e.target.style.color = colors.primary[500]}
+            onMouseLeave={(e) => e.target.style.color = colors.primary[400]}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Issues

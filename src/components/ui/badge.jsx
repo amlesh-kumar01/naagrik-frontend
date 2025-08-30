@@ -1,9 +1,10 @@
 import * as React from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '../../lib/utils';
+import { colors } from '../../lib/theme';
 
-const Badge = React.forwardRef(({ className, variant = 'default', ...props }, ref) => {
+const Badge = React.forwardRef(({ className, variant = 'default', style = {}, ...props }, ref) => {
   const variants = {
-    default: 'border-transparent bg-primary text-primary-foreground hover:bg-primary/80',
+    default: 'border-transparent text-white hover:opacity-80',
     secondary: 'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
     destructive: 'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
     outline: 'text-foreground',
@@ -11,6 +12,12 @@ const Badge = React.forwardRef(({ className, variant = 'default', ...props }, re
     warning: 'border-transparent bg-yellow-500 text-white hover:bg-yellow-600',
     info: 'border-transparent bg-blue-500 text-white hover:bg-blue-600',
   };
+
+  // Apply default background for primary badges unless custom style is provided
+  let badgeStyle = { ...style };
+  if (variant === 'default' && !style.background && !style.backgroundColor) {
+    badgeStyle.background = colors.gradients.button;
+  }
 
   return (
     <div
@@ -20,6 +27,7 @@ const Badge = React.forwardRef(({ className, variant = 'default', ...props }, re
         variants[variant],
         className
       )}
+      style={badgeStyle}
       {...props}
     />
   );

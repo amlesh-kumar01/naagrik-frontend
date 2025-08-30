@@ -418,7 +418,7 @@ const AddIssueReportPage = () => {
                           variant="outline"
                           onClick={getCurrentLocationHandler}
                           disabled={isGettingLocation}
-                          className="bg-white border-[#B2B0E8] text-[#3B38A0] hover:bg-[#B2B0E8] hover:text-white"
+                          className="border-primary text-primary hover:bg-primary hover:text-white"
                         >
                           {isGettingLocation ? (
                             <>

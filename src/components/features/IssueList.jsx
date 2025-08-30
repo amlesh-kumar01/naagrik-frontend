@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { LoadingCard } from '@/components/ui/loading';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { colors } from '../../lib/theme';
 import IssueCard from './IssueCard';
 import { 
   Search, 

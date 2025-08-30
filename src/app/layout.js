@@ -16,7 +16,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={inter.className} style={{ 
+        background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+        minHeight: '100vh'
+      }}>
         <AuthInitializer />
         <div className="min-h-screen flex flex-col">
           <ClientHeader />

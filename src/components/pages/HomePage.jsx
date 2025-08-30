@@ -6,6 +6,7 @@ import { useAuthStore } from '../../store';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
+import { colors } from '../../lib/theme';
 import { 
   AlertTriangle, 
   Users, 
@@ -100,9 +101,9 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)' }}>
+    <div className="min-h-screen" style={{ background: colors.gradients.secondary }}>
       {/* Hero Section */}
-      <section className="text-white" style={{ background: 'linear-gradient(135deg, #B2B0E8 0%, #7A85C1 50%, #3B38A0 100%)' }}>
+      <section className="text-white" style={{ background: colors.gradients.primary }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
@@ -117,8 +118,8 @@ const HomePage = () => {
                 <Link href="/report/add">
                   <Button
                     size="lg"
-                    className="bg-white text-[#3B38A0] hover:bg-white/90 px-8 py-4 text-lg font-medium shadow-xl transition-all duration-200 transform hover:scale-105"
-                    style={{ boxShadow: '0 8px 25px rgba(255, 255, 255, 0.3)' }}
+                    variant="primary"
+                    className="px-8 py-4 text-lg font-medium"
                   >
                     <Plus className="h-6 w-6 mr-2" />
                     Report an Issue
@@ -129,8 +130,8 @@ const HomePage = () => {
                   <Link href="/register">
                     <Button
                       size="lg"
-                      className="bg-white text-[#3B38A0] hover:bg-white/90 px-8 py-4 text-lg font-medium shadow-xl transition-all duration-200 transform hover:scale-105"
-                      style={{ boxShadow: '0 8px 25px rgba(255, 255, 255, 0.3)' }}
+                      variant="primary"
+                      className="px-8 py-4 text-lg font-medium"
                     >
                       Get Started
                       <ArrowRight className="h-6 w-6 ml-2" />
@@ -140,8 +141,7 @@ const HomePage = () => {
                     <Button
                       size="lg"
                       variant="outline"
-                      className="border-2 border-white text-white hover:bg-white hover:text-[#3B38A0] px-8 py-4 text-lg font-medium transition-all duration-200 backdrop-blur-sm"
-                      style={{ background: 'rgba(255, 255, 255, 0.1)' }}
+                      className="border-2 border-white text-white hover:bg-white hover:text-primary px-8 py-4 text-lg font-medium transition-all duration-200 backdrop-blur-sm bg-white/10"
                     >
                       Sign In
                     </Button>
@@ -208,7 +208,7 @@ const HomePage = () => {
                     <Link href={feature.href}>
                       <Button 
                         variant="outline" 
-                        className="w-full border-[#7A85C1] text-[#3B38A0] hover:bg-[#7A85C1] hover:text-white transition-all duration-200"
+                        className="w-full"
                       >
                         Learn More
                         <ArrowRight className="h-4 w-4 ml-2" />
@@ -295,8 +295,8 @@ const HomePage = () => {
             <Link href="/report/add">
               <Button
                 size="lg"
-                className="bg-white text-[#3B38A0] hover:bg-white/90 px-8 py-4 text-lg font-medium shadow-xl transition-all duration-200 transform hover:scale-105"
-                style={{ boxShadow: '0 8px 25px rgba(255, 255, 255, 0.3)' }}
+                variant="primary"
+                className="px-8 py-4 text-lg font-medium"
               >
                 <Plus className="h-6 w-6 mr-2" />
                 Report Your First Issue
@@ -306,8 +306,8 @@ const HomePage = () => {
             <Link href="/register">
               <Button
                 size="lg"
-                className="bg-white text-[#3B38A0] hover:bg-white/90 px-8 py-4 text-lg font-medium shadow-xl transition-all duration-200 transform hover:scale-105"
-                style={{ boxShadow: '0 8px 25px rgba(255, 255, 255, 0.3)' }}
+                variant="primary"
+                className="px-8 py-4 text-lg font-medium"
               >
                 Join Naagrik Today
                 <ArrowRight className="h-6 w-6 ml-2" />

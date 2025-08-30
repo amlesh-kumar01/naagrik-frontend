@@ -1,11 +1,10 @@
 import api from './client';
 
-// Issue API calls (exactly from original api.js)
+// Issue API calls with all advanced features
 export const issueAPI = {
+  // Basic issue operations
   createIssue: (issueData) => {
-
     if (issueData instanceof FormData) {
-
       return api.post('/issues', issueData, {
         headers: {
           'Content-Type': undefined, 
@@ -23,6 +22,7 @@ export const issueAPI = {
       return api.post('/issues', backendData);
     }
   },
+
   getIssues: (params = {}) => {
     // Map frontend params to backend expected params
     const backendParams = {};
@@ -37,6 +37,7 @@ export const issueAPI = {
     const queryString = new URLSearchParams(backendParams).toString();
     return api.get(`/issues${queryString ? `?${queryString}` : ''}`);
   },
+
   getIssueById: (issueId) => api.get(`/issues/${issueId}`),
   updateIssueStatus: (issueId, status, reason) => 
     api.put(`/issues/${issueId}/status`, { status, reason }),
@@ -44,4 +45,78 @@ export const issueAPI = {
   getCategories: () => api.get('/issues/categories'),
   deleteIssue: (issueId) => api.delete(`/issues/${issueId}`),
   findSimilarIssues: (text) => api.post('/issues/find-similar', { text }),
+
+  // Advanced filtering and search
+  getAdvancedFiltered: (params = {}) => {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        if (Array.isArray(value)) {
+          searchParams.append(key, value.join(','));
+        } else {
+          searchParams.append(key, value);
+        }
+      }
+    });
+    const queryString = searchParams.toString();
+    return api.get(`/issues/filter/advanced${queryString ? `?${queryString}` : ''}`);
+  },
+
+  // Trending issues
+  getTrendingIssues: (limit = 20) => api.get(`/issues/analytics/trending?limit=${limit}`),
+
+  // Issue statistics
+  getIssueStatistics: () => api.get('/issues/analytics/statistics'),
+
+  // Categories with statistics
+  getCategoriesWithStats: () => api.get('/issues/analytics/categories'),
+
+  // Issues by location
+  getIssuesByLocation: (params = {}) => {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        searchParams.append(key, value);
+      }
+    });
+    const queryString = searchParams.toString();
+    return api.get(`/issues/filter/location${queryString ? `?${queryString}` : ''}`);
+  },
+
+  // My issues
+  getMyIssues: (params = {}) => {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        searchParams.append(key, value);
+      }
+    });
+    const queryString = searchParams.toString();
+    return api.get(`/issues/my/issues${queryString ? `?${queryString}` : ''}`);
+  },
+
+  // Issues requiring steward attention
+  getIssuesRequiringAttention: () => api.get('/issues/steward/attention'),
+
+  // Bulk operations
+  bulkUpdateStatus: (data) => api.put('/issues/bulk/status', data),
+
+  // Comments
+  getComments: (issueId, params = {}) => {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        searchParams.append(key, value);
+      }
+    });
+    const queryString = searchParams.toString();
+    return api.get(`/issues/${issueId}/comments${queryString ? `?${queryString}` : ''}`);
+  },
+  createComment: (issueId, data) => api.post(`/issues/${issueId}/comments`, data),
+  updateComment: (issueId, commentId, data) => api.put(`/issues/${issueId}/comments/${commentId}`, data),
+  deleteComment: (issueId, commentId) => api.delete(`/issues/${issueId}/comments/${commentId}`),
+
+  // Steward notes
+  addStewardNote: (issueId, data) => api.post(`/stewards/issues/${issueId}/notes`, data),
+  getStewardNotes: (issueId) => api.get(`/stewards/issues/${issueId}/notes`),
 };

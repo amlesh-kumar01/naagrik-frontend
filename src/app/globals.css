@@ -1,8 +1,32 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
-
+/* Naagrik Centralized Color Variables */
 :root {
+  /* Primary Color Palette */
+  --color-primary-50: #f8f9fa;
+  --color-primary-100: #e9ecef;
+  --color-primary-200: #B2B0E8;
+  --color-primary-300: #7A85C1;
+  --color-primary-400: #3B38A0;
+  --color-primary-500: #1A2A80;
+  --color-primary-600: #152260;
+  --color-primary-700: #101b4d;
+  --color-primary-800: #0c143a;
+  --color-primary-900: #080d26;
+
+  /* Semantic Colors */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+
+  /* Background Gradients */
+  --bg-primary: linear-gradient(135deg, var(--color-primary-200) 0%, var(--color-primary-300) 100%);
+  --bg-secondary: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-primary-100) 100%);
+  --bg-button: linear-gradient(135deg, var(--color-primary-400) 0%, var(--color-primary-500) 100%);
+
+  /* Shadcn Variables */
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
   --card: 0 0% 100%;
@@ -23,6 +47,25 @@
   --input: 214.3 31.8% 91.4%;
   --ring: 221.2 83.2% 53.3%;
   --radius: 0.5rem;
+}
+
+/* Global Background Styling */
+body {
+  background: var(--bg-secondary);
+  min-height: 100vh;
+}
+
+/* Default page container styling */
+.page-container {
+  background: var(--bg-secondary);
+  min-height: 100vh;
+}
+
+/* Card backgrounds with slight transparency */
+.card-glass {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .dark {

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Facebook, Twitter, Instagram, Mail, Phone, MapPin } from 'lucide-react';
+import { colors } from '../../lib/theme';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -36,14 +37,14 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="text-white" style={{ background: 'linear-gradient(135deg, #1A2A80 0%, #3B38A0 100%)' }}>
+    <footer className="text-white" style={{ background: colors.gradients.primary }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
           <div className="lg:col-span-1">
             <div className="flex items-center space-x-2 mb-4">
               <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
-                <span className="text-[#3B38A0] font-bold text-lg">C</span>
+                <span style={{ color: colors.primary[400] }} className="font-bold text-lg">C</span>
               </div>
               <span className="text-xl font-bold">Naagrik</span>
             </div>
@@ -54,15 +55,15 @@ const Footer = () => {
             {/* Contact Info */}
             <div className="space-y-2 text-sm text-white/70">
               <div className="flex items-center space-x-2">
-                <Mail className="h-4 w-4 text-[#B2B0E8]" />
+                <Mail className="h-4 w-4" style={{ color: colors.primary[200] }} />
                 <span>support@naagrik.com</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Phone className="h-4 w-4 text-[#B2B0E8]" />
+                <Phone className="h-4 w-4" style={{ color: colors.primary[200] }} />
                 <span>+1 (555) 123-4567</span>
               </div>
               <div className="flex items-center space-x-2">
-                <MapPin className="h-4 w-4 text-[#B2B0E8]" />
+                <MapPin className="h-4 w-4" style={{ color: colors.primary[200] }} />
                 <span>San Francisco, CA</span>
               </div>
             </div>

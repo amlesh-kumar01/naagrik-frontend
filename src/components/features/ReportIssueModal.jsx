@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from '../ui/alert';
 import { LoadingSpinner } from '../ui/loading';
 import { useIssuesStore } from '../../store';
 import { issueAPI } from '../../lib/api';
+import { colors } from '../../lib/theme';
 import { 
   MapPin, 
   Camera, 
@@ -258,11 +259,11 @@ const ReportIssueModal = ({ isOpen, onClose, initialLocation }) => {
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#B2B0E8]/10 to-[#7A85C1]/10 rounded-lg"></div>
+        <div className="absolute inset-0 rounded-lg" style={{ background: `linear-gradient(135deg, ${colors.primary[200]}10 0%, ${colors.primary[300]}10 100%)` }}></div>
         <div className="relative z-10">
           <DialogHeader className="border-b border-gray-200 pb-6 mb-6">
-            <DialogTitle className="flex items-center space-x-3 text-2xl font-bold text-[#1A2A80]">
-              <div className="p-2 rounded-full bg-gradient-to-r from-[#B2B0E8] to-[#7A85C1]">
+            <DialogTitle className="flex items-center space-x-3 text-2xl font-bold" style={{ color: colors.primary[500] }}>
+              <div className="p-2 rounded-full" style={{ background: colors.gradients.primary }}>
                 <AlertTriangle className="h-6 w-6 text-white" />
               </div>
               <span>Report New Issue</span>

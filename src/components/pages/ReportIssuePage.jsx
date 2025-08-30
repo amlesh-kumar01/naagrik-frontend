@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { colors } from '../../lib/theme';
 import { Plus, AlertTriangle, Clock, MapPin, Camera, Phone, Shield } from 'lucide-react';
 
 const ReportIssuePage = () => {
@@ -53,16 +54,16 @@ const ReportIssuePage = () => {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)' }}>
+      <div className="min-h-screen" style={{ background: colors.gradients.secondary }}>
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Hero Section */}
           <div className="text-center mb-12">
             <div className="mx-auto h-20 w-20 rounded-full flex items-center justify-center mb-6 shadow-xl" style={{
-              background: 'linear-gradient(135deg, #B2B0E8 0%, #7A85C1 100%)'
+              background: colors.gradients.primary
             }}>
               <Plus className="h-10 w-10 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-[#1A2A80] mb-4">
+            <h1 className="text-3xl font-bold mb-4" style={{ color: colors.primary[500] }}>
               Report an Issue
             </h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -111,12 +112,9 @@ const ReportIssuePage = () => {
           <div className="text-center mb-12">
             <Button
               size="lg"
+              variant="primary"
               onClick={() => router.push('/report/add')}
-              className="px-8 py-4 text-lg font-medium text-white shadow-xl transition-all duration-200 transform hover:scale-105"
-              style={{
-                background: 'linear-gradient(135deg, #3B38A0 0%, #1A2A80 100%)',
-                boxShadow: '0 8px 25px rgba(59, 56, 160, 0.3)'
-              }}
+              className="px-8 py-4 text-lg font-medium"
             >
               <Plus className="h-6 w-6 mr-2" />
               Report New Issue

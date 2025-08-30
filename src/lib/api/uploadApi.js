@@ -6,7 +6,7 @@ export const uploadAPI = {
     const formData = new FormData();
     formData.append('image', imageFile);
     return api.post('/upload/profile', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { 'Content-Type': undefined },
     });
   },
   uploadIssueMedia: (mediaFiles) => {
@@ -15,7 +15,7 @@ export const uploadAPI = {
       formData.append('media', file);
     });
     return api.post('/upload/issue-media', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { 'Content-Type': undefined },
     });
   },
   deleteMedia: (publicId, type = 'image') => 

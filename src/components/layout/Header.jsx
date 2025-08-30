@@ -42,12 +42,18 @@ const Header = () => {
     { name: 'Issues', href: '/issues', icon: AlertTriangle }
   ];
 
+  // Add steward application link for eligible users (not already stewards/admins)
+  if (user && user.role === 'CITIZEN') {
+    navigationItems.push({ name: 'Become Steward', href: '/steward/apply', icon: Award });
+  }
+
   if (user?.role === 'STEWARD' || user?.role === 'SUPER_ADMIN') {
     navigationItems.push({ name: 'Steward Dashboard', href: '/steward', icon: Users });
   }
 
   if (user?.role === 'SUPER_ADMIN') {
     navigationItems.push({ name: 'Admin Panel', href: '/admin', icon: Settings });
+    navigationItems.push({ name: 'Applications', href: '/admin/applications', icon: Users });
   }
 
   const getRoleColor = (role) => {
@@ -155,6 +161,24 @@ const Header = () => {
                           <User className="mr-3 h-4 w-4 text-[#7A85C1]" />
                           Your Profile
                         </Link>
+                        {user.role === 'CITIZEN' && (
+                          <Link
+                            href="/steward/apply"
+                            className="flex items-center px-4 py-2 text-sm text-[#1A2A80] hover:bg-[#B2B0E8]/20 rounded-lg transition-colors"
+                          >
+                            <Award className="mr-3 h-4 w-4 text-[#7A85C1]" />
+                            Become Steward
+                          </Link>
+                        )}
+                        {user.role === 'SUPER_ADMIN' && (
+                          <Link
+                            href="/admin/applications"
+                            className="flex items-center px-4 py-2 text-sm text-[#1A2A80] hover:bg-[#B2B0E8]/20 rounded-lg transition-colors"
+                          >
+                            <Users className="mr-3 h-4 w-4 text-[#7A85C1]" />
+                            Review Applications
+                          </Link>
+                        )}
                         <Link
                           href="/settings"
                           className="flex items-center px-4 py-2 text-sm text-[#1A2A80] hover:bg-[#B2B0E8]/20 rounded-lg transition-colors"

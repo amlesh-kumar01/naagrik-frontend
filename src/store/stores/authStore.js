@@ -34,6 +34,7 @@ export const useAuthStore = create(
       refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
+      isInitialized: false,
       error: null,
 
       // Actions
@@ -158,7 +159,10 @@ export const useAuthStore = create(
         // Get token from localStorage
         const token = typeof window !== 'undefined' ? localStorage.getItem('naagrik-token') : null;
 
-        if (!token) return;
+        if (!token) {
+          set({ isInitialized: true });
+          return;
+        }
 
         set({ isLoading: true });
         try {
@@ -171,7 +175,8 @@ export const useAuthStore = create(
             user, 
             token, 
             isAuthenticated: true, 
-            isLoading: false 
+            isLoading: false,
+            isInitialized: true
           });
         } catch (error) {
           console.error('Failed to initialize auth:', error);
@@ -181,7 +186,8 @@ export const useAuthStore = create(
             token: null, 
             refreshToken: null,
             isAuthenticated: false, 
-            isLoading: false 
+            isLoading: false,
+            isInitialized: true
           });
         }
       },
@@ -282,6 +288,15 @@ export const useAuthStore = create(
           // If token exists but is not a string, clean up
           console.warn('Invalid token detected during rehydration, cleaning up...');
           removeAuthToken();
+          // Mark as initialized even if cleanup was needed
+          if (state) {
+            state.isInitialized = true;
+          }
+        } else {
+          // No token found, mark as initialized
+          if (state) {
+            state.isInitialized = true;
+          }
         }
       },
     }

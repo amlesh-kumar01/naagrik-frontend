@@ -43,6 +43,7 @@ export const issueAPI = {
     api.put(`/issues/${issueId}/status`, { status, reason }),
   voteIssue: (issueId, voteType) => api.post(`/issues/${issueId}/vote`, { voteType }),
   removeVoteFromIssue: (issueId) => api.delete(`/issues/${issueId}/vote`),
+  getUserVoteStatus: (issueId) => api.get(`/issues/${issueId}/vote-status`),
   getCategories: () => api.get('/issues/categories'),
   deleteIssue: (issueId) => api.delete(`/issues/${issueId}`),
   

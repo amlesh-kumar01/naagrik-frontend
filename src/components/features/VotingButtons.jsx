@@ -6,6 +6,7 @@ import { useIssuesStore } from '@/store';
 import { Button } from '@/components/ui/button';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { issueAPI } from '@/lib/api/issueApi';
 
 const VotingButtons = ({ 
   issueId, 
@@ -22,20 +23,44 @@ const VotingButtons = ({
     total_score: 0,
     user_vote: null
   });
+  const [userVoteStatus, setUserVoteStatus] = useState({
+    hasVoted: false,
+    voteType: null,
+    voteTypeText: null
+  });
   const [voting, setVoting] = useState(false);
 
   useEffect(() => {
     if (initialStats) {
       setStats(initialStats);
     }
-  }, [initialStats, issueId]);
+    
+    // Load user vote status when component mounts
+    if (isAuthenticated && issueId) {
+      loadUserVoteStatus();
+    }
+  }, [initialStats, issueId, isAuthenticated]);
 
-  // Helper function to check if user voted for a specific type
-  const hasUserVoted = (voteType) => {
-    return stats.user_vote === voteType || 
-           (stats.user_vote === 1 && voteType === 'UPVOTE') ||
-           (stats.user_vote === -1 && voteType === 'DOWNVOTE');
+  const loadUserVoteStatus = async () => {
+    try {
+      const response = await issueAPI.getUserVoteStatus(issueId);
+      if (response.data?.success) {
+        setUserVoteStatus(response.data.data);
+      }
+    } catch (error) {
+      console.error('Failed to load vote status:', error);
+    }
   };
+
+  // Check if user has voted (using the API response)
+  const getUserVoteType = () => {
+    if (userVoteStatus.hasVoted) {
+      return userVoteStatus.voteType === 1 ? 'UPVOTE' : 'DOWNVOTE';
+    }
+    return null;
+  };
+
+  const userVoteType = getUserVoteType();
 
   const handleVote = async (voteType) => {
     if (!isAuthenticated) {
@@ -47,34 +72,35 @@ const VotingButtons = ({
     
     setVoting(true);
     try {
-      const isRemoveVote = (
-        (stats.user_vote === voteType) || 
-        (stats.user_vote === 1 && voteType === 'UPVOTE') ||
-        (stats.user_vote === -1 && voteType === 'DOWNVOTE')
-      );
-      let newStats;
+      // If user already voted with same type, remove the vote
+      const isRemoveVote = userVoteType === voteType;
       
-      // Convert vote type to numeric value for backend
-      const numericVoteType = voteType === 'UPVOTE' ? 1 : -1;
-      
+      let response;
       if (isRemoveVote) {
-        newStats = await removeVoteFromIssue(issueId);
+        response = await removeVoteFromIssue(issueId);
       } else {
-        const response = await voteOnIssue(issueId, numericVoteType);
-        newStats = response.data || response;
+        // Convert to numeric value for backend
+        const numericVoteType = voteType === 'UPVOTE' ? 1 : -1;
+        response = await voteOnIssue(issueId, numericVoteType);
       }
 
-      // Map backend response to component state format
-      const mappedStats = {
-        upvotes: newStats.upvotes || newStats.upvoteCount || stats.upvotes,
-        downvotes: newStats.downvotes || newStats.downvoteCount || stats.downvotes,
-        total_score: newStats.total_score || newStats.voteScore || newStats.vote_score || stats.total_score,
-        user_vote: newStats.user_vote || newStats.userVote || (isRemoveVote ? null : voteType)
-      };
-
-      setStats(mappedStats);
-      onVoteChange?.(mappedStats);
+      // Update stats from response
+      if (response?.data?.issueStats) {
+        const newStats = {
+          upvotes: response.data.issueStats.upvotes || 0,
+          downvotes: response.data.issueStats.downvotes || 0,
+          total_score: response.data.issueStats.total_score || 0,
+          user_vote: response.data.issueStats.user_vote
+        };
+        
+        setStats(newStats);
+        onVoteChange?.(newStats);
+      }
       
+      // Refresh user vote status from API
+      await loadUserVoteStatus();
+      
+      // Show appropriate message
       if (isRemoveVote) {
         toast.success('Vote removed');
       } else {
@@ -82,7 +108,7 @@ const VotingButtons = ({
       }
     } catch (error) {
       console.error('Error voting:', error);
-      toast.error('Failed to vote');
+      toast.error(error.message || 'Failed to vote');
     } finally {
       setVoting(false);
     }
@@ -90,35 +116,21 @@ const VotingButtons = ({
 
   if (compact) {
     return (
-      <div className={`flex items-center space-x-2 ${className}`}>
+      <div className={`flex items-center space-x-1 ${className}`}>
         <Button
-          variant={hasUserVoted('UPVOTE') ? 'default' : 'ghost'}
+          variant="ghost"
           size="sm"
           onClick={() => handleVote('UPVOTE')}
-          disabled={voting}
-          className={`px-2 py-1 h-8 ${
-            hasUserVoted('UPVOTE') 
-              ? 'bg-green-600 hover:bg-green-700 text-white' 
-              : 'hover:bg-green-50 hover:text-green-700'
+          disabled={voting || !isAuthenticated}
+          className={`px-3 py-2 h-9 transition-all duration-200 ${
+            userVoteType === 'UPVOTE'
+              ? 'bg-green-100 border border-green-300 text-green-700 hover:bg-green-200' 
+              : 'hover:bg-green-50 hover:text-green-600 border border-transparent hover:border-green-200'
           }`}
         >
-          <ThumbsUp className="h-3 w-3 mr-1" />
-          <span className="font-medium">{stats.upvotes || 0}</span>
-        </Button>
-        
-        <Button
-          variant={hasUserVoted('DOWNVOTE') ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => handleVote('DOWNVOTE')}
-          disabled={voting}
-          className={`px-2 py-1 h-8 ${
-            hasUserVoted('DOWNVOTE') 
-              ? 'bg-red-600 hover:bg-red-700 text-white' 
-              : 'hover:bg-red-50 hover:text-red-700'
-          }`}
-        >
-          <ThumbsDown className="h-3 w-3 mr-1" />
-          <span className="font-medium">{stats.downvotes || 0}</span>
+          <ThumbsUp className={`h-4 w-4 ${
+            userVoteType === 'UPVOTE' ? 'fill-current' : ''
+          }`} />
         </Button>
       </div>
     );
@@ -128,57 +140,63 @@ const VotingButtons = ({
     <div className={`space-y-3 ${className}`}>
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-gray-600">Vote Score</span>
-        <span className="text-lg font-bold text-[#1A2A80]">
-          {stats.total_score}
+        <span className={`text-lg font-bold ${
+          stats.total_score > 0 ? 'text-green-600' : 
+          stats.total_score < 0 ? 'text-red-600' : 'text-gray-600'
+        }`}>
+          {stats.total_score > 0 ? '+' : ''}{stats.total_score}
         </span>
       </div>
       
-      <div className="flex space-x-2">
+      <div className="flex space-x-3">
         <Button
-          variant={hasUserVoted('UPVOTE') ? 'default' : 'outline'}
+          variant="ghost"
           size="sm"
           onClick={() => handleVote('UPVOTE')}
-          disabled={voting}
+          disabled={voting || !isAuthenticated}
           className={`flex-1 transition-all duration-200 ${
-            hasUserVoted('UPVOTE') 
-              ? 'bg-green-600 hover:bg-green-700 text-white' 
-              : 'hover:bg-green-50 hover:border-green-300 hover:text-green-700'
+            userVoteType === 'UPVOTE'
+              ? 'bg-green-600 hover:bg-green-700 text-white border-green-600' 
+              : 'hover:bg-green-50 hover:border-green-300 hover:text-green-700 border border-gray-200'
           }`}
         >
-          <ThumbsUp className="h-4 w-4 mr-1" />
-          {voting && !hasUserVoted('UPVOTE') ? 'Voting...' : `${stats.upvotes} Upvote${stats.upvotes !== 1 ? 's' : ''}`}
+          <ThumbsUp className={`h-4 w-4 mr-2 ${
+            userVoteType === 'UPVOTE' ? 'fill-current' : ''
+          }`} />
+          <span className="font-semibold">
+            {voting && userVoteType !== 'UPVOTE' ? 'Voting...' : 'Upvote'}
+          </span>
         </Button>
         
         <Button
-          variant={hasUserVoted('DOWNVOTE') ? 'default' : 'outline'}
+          variant="ghost"
           size="sm"
           onClick={() => handleVote('DOWNVOTE')}
-          disabled={voting}
+          disabled={voting || !isAuthenticated}
           className={`flex-1 transition-all duration-200 ${
-            hasUserVoted('DOWNVOTE') 
-              ? 'bg-red-600 hover:bg-red-700 text-white' 
-              : 'hover:bg-red-50 hover:border-red-300 hover:text-red-700'
+            userVoteType === 'DOWNVOTE'
+              ? 'bg-red-600 hover:bg-red-700 text-white border-red-600' 
+              : 'hover:bg-red-50 hover:border-red-300 hover:text-red-700 border border-gray-200'
           }`}
         >
-          <ThumbsDown className="h-4 w-4 mr-1" />
-          {voting && !hasUserVoted('DOWNVOTE') ? 'Voting...' : `${stats.downvotes} Downvote${stats.downvotes !== 1 ? 's' : ''}`}
+          <ThumbsDown className={`h-4 w-4 mr-2 ${
+            userVoteType === 'DOWNVOTE' ? 'fill-current' : ''
+          }`} />
+          <span className="font-semibold">
+            {voting && userVoteType !== 'DOWNVOTE' ? 'Voting...' : 'Downvote'}
+          </span>
         </Button>
       </div>
       
-      {(stats.user_vote === 'UPVOTE' || stats.user_vote === 1 || stats.user_vote === 'DOWNVOTE' || stats.user_vote === -1) && (
+      {userVoteType && (
         <div className="text-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              const currentVoteType = (stats.user_vote === 1 || stats.user_vote === 'UPVOTE') ? 'UPVOTE' : 'DOWNVOTE';
-              handleVote(currentVoteType);
-            }}
+          <button
+            onClick={() => handleVote(userVoteType)}
             disabled={voting}
-            className="text-xs text-gray-500 hover:text-gray-700"
+            className="text-xs text-gray-500 hover:text-gray-700 underline"
           >
-            Remove my vote
-          </Button>
+            {voting ? 'Removing...' : `Remove my ${userVoteType.toLowerCase()}`}
+          </button>
         </div>
       )}
     </div>

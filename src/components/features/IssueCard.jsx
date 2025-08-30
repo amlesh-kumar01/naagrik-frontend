@@ -7,18 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import IssueManagementActions from './IssueManagementActions';
-import VotingButtons from './VotingButtons';
+import UpvoteButton from './UpvoteButton';
 import { canManageIssue } from '@/lib/utils/issuePermissions';
 import { 
   MapPin, 
   Clock, 
   MessageCircle, 
-  Share2, 
-  MoreHorizontal,
   Camera,
   AlertTriangle,
-  CheckCircle,
-  ExternalLink
+  CheckCircle
 } from 'lucide-react';
 import { 
   getStatusColor, 
@@ -29,11 +26,9 @@ import {
 
 const IssueCard = ({ 
   issue, 
-  onVote, 
   onShare, 
   onStatusUpdate,
   onIssueRemoved,
-  showVoteButton = true, 
   showLocation = true,
   showManagementActions = true,
   compact = false,
@@ -50,10 +45,6 @@ const IssueCard = ({
       return;
     }
     router.push(`/issues/${issue.id}`);
-  };
-
-  const handleShare = () => {
-    onShare?.(issue);
   };
 
   const getPriorityColor = (priority) => {
@@ -136,25 +127,23 @@ const IssueCard = ({
               
               {/* Footer Actions */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3 text-xs text-gray-500">
-                  <VotingButtons
+                <div className="flex items-center space-x-4 text-sm">
+                  {/* Upvote Button */}
+                  <UpvoteButton 
                     issueId={issue.id}
-                    initialStats={{
-                      upvotes: issue.upvotes || 0,
-                      downvotes: issue.downvotes || 0,
-                      total_score: issue.vote_score || 0,
-                      user_vote: issue.user_vote
-                    }}
-                    compact={true}
+                    className="px-2"
                   />
-                  <span className="flex items-center">
-                    <MessageCircle className="h-3 w-3 mr-1" />
-                    {issue.comments_count || 0}
-                  </span>
-                  <span>{formatRelativeTime(issue.created_at)}</span>
+                  
+                  {/* Comments Count */}
+                  <div className="flex items-center text-gray-500">
+                    <MessageCircle className="h-4 w-4 mr-1" />
+                    <span className="font-medium">{issue.comments_count || 0}</span>
+                  </div>
+                  
+                  <span className="text-gray-400 text-xs">{formatRelativeTime(issue.created_at)}</span>
                 </div>
                 
-                {/* Management Actions */}
+                {/* Management Actions - Only Admin/Steward */}
                 {showManagementActions && canManage && (
                   <IssueManagementActions
                     issue={issue}
@@ -262,21 +251,11 @@ const IssueCard = ({
 
           {/* Actions */}
           <div className="flex items-center space-x-3">
-            {/* Voting */}
-            {showVoteButton && (
-              <div className="flex items-center">
-                <VotingButtons
-                  issueId={issue.id}
-                  initialStats={{
-                    upvotes: issue.upvotes || 0,
-                    downvotes: issue.downvotes || 0,
-                    total_score: issue.vote_score || 0,
-                    user_vote: issue.user_vote
-                  }}
-                  compact={true}
-                />
-              </div>
-            )}
+            {/* Upvote Button */}
+            <UpvoteButton 
+              issueId={issue.id}
+              className="px-3"
+            />
             
             {/* Comments */}
             <Link href={`/issues/${issue.id}`}>
@@ -289,16 +268,6 @@ const IssueCard = ({
                 <span className="font-medium">{issue.comments_count || 0}</span>
               </Button>
             </Link>
-            
-            {/* Share */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleShare}
-              className="text-gray-600 hover:text-[#1A2A80] hover:bg-blue-50"
-            >
-              <Share2 className="h-4 w-4" />
-            </Button>
           </div>
         </div>
 

@@ -159,15 +159,17 @@ const IssueCard = ({
                   
                   <span className="text-gray-400 text-xs">{formatRelativeTime(issue.created_at)}</span>
                 </div>
-                
-                {/* Management Actions - Only Admin/Steward */}
+
+                {/* Management Actions for Compact Mode */}
                 {showManagementActions && canManage && (
-                  <IssueManagementActions
-                    issue={issue}
-                    onStatusUpdate={onStatusUpdate}
-                    onIssueRemoved={onIssueRemoved}
-                    compact={true}
-                  />
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <IssueManagementActions
+                      issue={issue}
+                      onStatusUpdate={onStatusUpdate}
+                      onIssueRemoved={onIssueRemoved}
+                      compact={true}
+                    />
+                  </div>
                 )}
               </div>
             </div>

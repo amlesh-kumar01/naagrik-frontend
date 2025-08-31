@@ -261,7 +261,6 @@ const VoteButton = ({
         >
           <ThumbsUp className={`h-4 w-4 ${localUserVote === 'upvote' ? 'fill-current' : ''}`} />
           <span className="font-medium">{localVoteStats.upvotes}</span>
-          {localUserVote === 'upvote' && <span className="text-xs opacity-75">• Voted</span>}
         </Button>
       </div>
 
@@ -280,14 +279,7 @@ const VoteButton = ({
         >
           <ThumbsDown className={`h-4 w-4 ${localUserVote === 'downvote' ? 'fill-current' : ''}`} />
           <span className="font-medium">{localVoteStats.downvotes}</span>
-          {localUserVote === 'downvote' && <span className="text-xs opacity-75">• Voted</span>}
         </Button>
-      </div>
-
-      {/* Vote Score Display */}
-      <div className="flex items-center space-x-1 text-sm text-gray-600">
-        <span>•</span>
-        <span>Score: {localVoteStats.upvotes - localVoteStats.downvotes}</span>
       </div>
     </div>
   );

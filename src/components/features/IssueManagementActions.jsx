@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuthStore, useIssuesStore } from '@/store';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -46,11 +47,13 @@ const IssueManagementActions = ({
   const { user } = useAuthStore();
   const { archiveIssue, deleteIssue, markAsDuplicate, updateIssueStatus } = useIssuesStore();
   
+  const dropdownButtonRef = useRef(null);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   
   const [archiveReason, setArchiveReason] = useState('');
   const [archiveType, setArchiveType] = useState('RESOLVED_EXTERNALLY');
@@ -64,13 +67,24 @@ const IssueManagementActions = ({
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (isDropdownOpen && !event.target.closest('.dropdown-container')) {
-        setIsDropdownOpen(false);
+      if (isDropdownOpen) {
+        // Check if click is outside the dropdown container
+        const dropdownContainer = event.target.closest('.dropdown-container');
+        if (!dropdownContainer) {
+          setIsDropdownOpen(false);
+        }
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, [isDropdownOpen]);
 
   // Role-based permissions (CITIZEN, STEWARD, SUPER_ADMIN only)
@@ -215,37 +229,60 @@ const IssueManagementActions = ({
         {availableTransitions.length > 0 && (
           <div className="relative dropdown-container">
             <Button 
+              ref={dropdownButtonRef}
               variant="ghost" 
               size="sm"
               onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
+                
+                if (!isDropdownOpen && dropdownButtonRef.current) {
+                  const rect = dropdownButtonRef.current.getBoundingClientRect();
+                  setDropdownPosition({
+                    top: rect.bottom + window.scrollY + 4,
+                    left: rect.right - 160 + window.scrollX // Align right edge
+                  });
+                }
                 setIsDropdownOpen(!isDropdownOpen);
               }}
-              className="h-9 px-3 text-gray-600 hover:text-gray-700 hover:bg-gray-50 border border-transparent hover:border-gray-200"
+              className={`h-9 px-3 transition-colors duration-200 ${
+                isDropdownOpen 
+                  ? 'bg-blue-50 text-blue-600 border-blue-200' 
+                  : 'text-gray-600 hover:text-gray-700 hover:bg-gray-50 border-transparent hover:border-gray-200'
+              }`}
             >
               <MoreHorizontal className="h-4 w-4" />
             </Button>
-            {isDropdownOpen && (
-              <div className="absolute top-full right-0 mt-1 z-[100] bg-white shadow-xl border rounded-lg p-1 min-w-[160px] max-w-[200px]">
+            {isDropdownOpen && createPortal(
+              <div 
+                className="fixed bg-white shadow-2xl border rounded-lg p-1 min-w-[160px] max-w-[200px] z-[9999]"
+                style={{ 
+                  top: `${dropdownPosition.top}px`,
+                  left: `${dropdownPosition.left}px`
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
                 {availableTransitions.slice(0, 3).map(status => {
                   const Icon = status.icon;
                   return (
                     <button
                       key={status.value}
                       onClick={(e) => {
+                        e.preventDefault();
                         e.stopPropagation();
                         setNewStatus(status.value);
                         setShowStatusModal(true);
                         setIsDropdownOpen(false);
                       }}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 rounded flex items-center space-x-2 transition-colors"
+                      className="w-full text-left px-3 py-2.5 text-sm hover:bg-blue-50 rounded-md flex items-center space-x-2 transition-colors duration-150 border-none outline-none"
                     >
                       <Icon className="h-4 w-4 text-gray-500" />
-                      <span className="text-gray-700">{status.label}</span>
+                      <span className="text-gray-700 font-medium">{status.label}</span>
                     </button>
                   );
                 })}
-              </div>
+              </div>,
+              document.body
             )}
           </div>
         )}
@@ -256,10 +293,11 @@ const IssueManagementActions = ({
             variant="ghost" 
             size="sm"
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               setShowArchiveModal(true);
             }}
-            className="h-9 px-3 text-amber-600 hover:text-amber-700 hover:bg-amber-50 border border-transparent hover:border-amber-200"
+            className="h-9 px-3 text-amber-600 hover:text-amber-700 hover:bg-amber-50 border border-transparent hover:border-amber-200 transition-colors duration-200"
           >
             <Archive className="h-4 w-4" />
           </Button>
@@ -271,10 +309,11 @@ const IssueManagementActions = ({
             variant="ghost" 
             size="sm"
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               setShowDeleteModal(true);
             }}
-            className="h-9 px-3 text-red-600 hover:text-red-700 hover:bg-red-50 border border-transparent hover:border-red-200"
+            className="h-9 px-3 text-red-600 hover:text-red-700 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors duration-200"
           >
             <Trash2 className="h-4 w-4" />
           </Button>

@@ -1,7 +1,7 @@
 import ReportIssuePage from '../../components/pages/ReportIssuePage';
 
 export const metadata = {
-  title: 'Report Issue - CivicConnect',
+  title: 'Report Issue - Naagrik',
   description: 'Report a community issue',
 };
 

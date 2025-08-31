@@ -1,7 +1,7 @@
 import IssuesPage from '../../components/pages/IssuesPage';
 
 export const metadata = {
-  title: 'Browse Issues - CivicConnect', 
+  title: 'Browse Issues - Naagrik',
   description: 'Browse and search community issues',
 };
 

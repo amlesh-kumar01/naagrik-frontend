@@ -1,7 +1,7 @@
 import MapPage from '../../components/pages/MapPage';
 
 export const metadata = {
-  title: 'Map View - CivicConnect',
+  title: 'Map View - Naagrik',
   description: 'View community issues on an interactive map',
 };
 

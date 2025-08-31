@@ -16,6 +16,7 @@ import {
   Clock,
   MapPin,
   Users,
+  User,
   TrendingUp,
   Award,
   MessageCircle,

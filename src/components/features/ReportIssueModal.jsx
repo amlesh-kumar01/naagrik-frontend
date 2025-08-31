@@ -8,7 +8,7 @@ import { Textarea } from '../ui/textarea';
 import { Card, CardContent } from '../ui/card';
 import { Alert, AlertDescription } from '../ui/alert';
 import { LoadingSpinner } from '../ui/loading';
-import { useIssuesStore } from '../../store';
+import { useIssuesStore, useZoneStore, useCategoryStore } from '../../store';
 import { issueAPI } from '../../lib/api';
 import { colors } from '../../lib/theme';
 import { 
@@ -28,6 +28,7 @@ const ReportIssueModal = ({ isOpen, onClose, initialLocation }) => {
     title: '',
     description: '',
     categoryId: '',
+    zoneId: '',
     priority: 'MEDIUM',
     locationLat: initialLocation?.lat || '',
     locationLng: initialLocation?.lng || '',
@@ -40,29 +41,56 @@ const ReportIssueModal = ({ isOpen, onClose, initialLocation }) => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [zones, setZones] = useState([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [isLoadingZones, setIsLoadingZones] = useState(true);
   
   const { createIssue } = useIssuesStore();
+  const { fetchAvailableZones } = useZoneStore();
+  const { fetchAllCategories } = useCategoryStore();
   const { getCurrentLocation } = useLocationService();
 
-  // Fetch categories on mount
+  // Fetch categories and zones on mount
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchData = async () => {
+      if (!isOpen) return;
+      
+      setIsLoadingCategories(true);
+      setIsLoadingZones(true);
+      
       try {
-        const response = await issueAPI.getCategories();
-        setCategories(response.data.categories);
+        // Fetch categories
+        const categoriesResult = await fetchAllCategories();
+        if (categoriesResult.success) {
+          setCategories(categoriesResult.categories || []);
+        } else {
+          setErrors(prev => ({ ...prev, categories: 'Failed to load categories' }));
+        }
       } catch (error) {
         console.error('Failed to fetch categories:', error);
         setErrors(prev => ({ ...prev, categories: 'Failed to load categories' }));
       } finally {
         setIsLoadingCategories(false);
       }
+      
+      try {
+        // Fetch available zones
+        const zonesResult = await fetchAvailableZones();
+        if (zonesResult.success) {
+          setZones(zonesResult.zones || []);
+        } else {
+          setErrors(prev => ({ ...prev, zones: 'Failed to load zones' }));
+        }
+      } catch (error) {
+        console.error('Failed to fetch zones:', error);
+        setErrors(prev => ({ ...prev, zones: 'Failed to load zones' }));
+      } finally {
+        setIsLoadingZones(false);
+      }
     };
 
-    if (isOpen) {
-      fetchCategories();
-    }
-  }, [isOpen]);
+    fetchData();
+  }, [isOpen, fetchAllCategories, fetchAvailableZones]);
 
   const priorities = [
     { value: 'LOW', label: 'Low Priority', color: 'text-green-600' },

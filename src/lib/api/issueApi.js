@@ -15,6 +15,8 @@ export const issueAPI = {
         title: issueData.title,
         description: issueData.description,
         categoryId: issueData.categoryId || issueData.category_id,
+        zoneId: issueData.zoneId || issueData.zone_id, // Required zone selection
+        priority: issueData.priority || 'MEDIUM',
         locationLat: issueData.locationLat || issueData.location_lat,
         locationLng: issueData.locationLng || issueData.location_lng,
         address: issueData.address
@@ -29,13 +31,43 @@ export const issueAPI = {
     if (params.page) backendParams.page = params.page;
     if (params.limit) backendParams.limit = params.limit;
     if (params.status && params.status !== 'all') backendParams.status = params.status;
-    if (params.category && params.category !== 'all') backendParams.categoryId = params.category;
-    if (params.categoryId) backendParams.categoryId = params.categoryId;
+    if (params.category && params.category !== 'all') backendParams.category = params.category;
+    if (params.categoryId) backendParams.category = params.categoryId;
+    if (params.zone && params.zone !== 'all') backendParams.zone = params.zone;
+    if (params.zoneId) backendParams.zone = params.zoneId;
     if (params.userId) backendParams.userId = params.userId;
     if (params.search) backendParams.search = params.search;
     
-    const queryString = new URLSearchParams(backendParams).toString();
-    return api.get(`/issues${queryString ? `?${queryString}` : ''}`);
+    // Support for array filters
+    if (params.categories && Array.isArray(params.categories)) {
+      backendParams['categories[]'] = params.categories;
+    }
+    if (params.zones && Array.isArray(params.zones)) {
+      backendParams['zones[]'] = params.zones;
+    }
+    if (params.statuses && Array.isArray(params.statuses)) {
+      backendParams['statuses[]'] = params.statuses;
+    }
+    
+    // Support for advanced filters
+    if (params.priority) backendParams.priority = params.priority;
+    if (params.createdAfter) backendParams.createdAfter = params.createdAfter;
+    if (params.createdBefore) backendParams.createdBefore = params.createdBefore;
+    if (params.minVotes) backendParams.minVotes = params.minVotes;
+    if (params.hasMedia) backendParams.hasMedia = params.hasMedia;
+    if (params.sortBy) backendParams.sortBy = params.sortBy;
+    if (params.sortOrder) backendParams.sortOrder = params.sortOrder;
+    
+    const queryString = new URLSearchParams();
+    Object.entries(backendParams).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach(v => queryString.append(key, v));
+      } else {
+        queryString.append(key, value);
+      }
+    });
+    
+    return api.get(`/issues${queryString.toString() ? `?${queryString.toString()}` : ''}`);
   },
 
   getIssueById: (issueId) => api.get(`/issues/${issueId}`),
@@ -65,7 +97,12 @@ export const issueAPI = {
   // Restore archived issue (admin only)
   restoreIssue: (issueId, data) => api.put(`/issues/${issueId}/restore`, data),
   
-  findSimilarIssues: (text) => api.post('/issues/find-similar', { text }),
+  findSimilarIssues: (data) => api.post('/issues/find-similar', {
+    title: data.title,
+    description: data.description,
+    categoryId: data.categoryId,
+    zoneId: data.zoneId
+  }),
 
   // Advanced filtering and search
   getAdvancedFiltered: (params = {}) => {

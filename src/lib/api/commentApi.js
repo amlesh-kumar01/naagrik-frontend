@@ -72,4 +72,28 @@ export const commentAPI = {
     action: data.action, // 'APPROVE' or 'DELETE'
     feedback: data.feedback
   }),
+
+  // Steward: Delete comments in assigned zones
+  stewardDeleteComment: (commentId, reason) => api.delete(`/comments/${commentId}/steward`, {
+    data: { reason }
+  }),
+
+  // Steward: Get comments in assigned zones for moderation
+  getStewardModerationComments: (params = {}) => {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        searchParams.append(key, value);
+      }
+    });
+    const queryString = searchParams.toString();
+    return api.get(`/comments/steward/moderation${queryString ? `?${queryString}` : ''}`);
+  },
+
+  // Steward: Bulk moderate comments
+  bulkModerateComments: (commentIds, action, reason) => api.post('/comments/steward/bulk-moderate', {
+    commentIds,
+    action, // 'DELETE' or 'APPROVE' or 'FLAG'
+    reason
+  }),
 };

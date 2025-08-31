@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore, useUserStore, useStewardStore } from '../../store';
+import { useAuthStore, useUserStore, useStewardStore, useZoneStore, useCategoryStore } from '../../store';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -36,9 +36,16 @@ const StewardApplicationPage = () => {
     fetchMyApplication,
     clearError 
   } = useStewardStore();
+
+  const { fetchAvailableZones } = useZoneStore();
+  const { fetchAllCategories } = useCategoryStore();
   
   const router = useRouter();
   const [justification, setJustification] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedZones, setSelectedZones] = useState([]);
+  const [availableCategories, setAvailableCategories] = useState([]);
+  const [availableZones, setAvailableZones] = useState([]);
   const [isEligible, setIsEligible] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -59,6 +66,20 @@ const StewardApplicationPage = () => {
         fetchMyApplication(),
         fetchProfile()
       ]);
+
+      // Load categories and zones for selection
+      const [categoriesResult, zonesResult] = await Promise.all([
+        fetchAllCategories(),
+        fetchAvailableZones()
+      ]);
+
+      if (categoriesResult.success) {
+        setAvailableCategories(categoriesResult.categories);
+      }
+
+      if (zonesResult.success) {
+        setAvailableZones(zonesResult.zones);
+      }
     } catch (error) {
       // Errors are handled in stores
     }
@@ -91,14 +112,44 @@ const StewardApplicationPage = () => {
       return; // Form validation will show error
     }
 
+    if (selectedCategories.length === 0) {
+      return; // Form validation will show error
+    }
+
+    if (selectedZones.length === 0) {
+      return; // Form validation will show error
+    }
+
     try {
       clearError();
-      await submitApplication(justification);
+      await submitApplication({
+        justification,
+        categories: selectedCategories,
+        zones: selectedZones
+      });
       setSuccess(true);
       setJustification('');
+      setSelectedCategories([]);
+      setSelectedZones([]);
     } catch (error) {
       // Error is handled in store
     }
+  };
+
+  const handleCategoryToggle = (categoryId) => {
+    setSelectedCategories(prev => 
+      prev.includes(categoryId) 
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
+
+  const handleZoneToggle = (zoneId) => {
+    setSelectedZones(prev => 
+      prev.includes(zoneId) 
+        ? prev.filter(id => id !== zoneId)
+        : [...prev, zoneId]
+    );
   };
 
   const getStatusColor = (status) => {
@@ -310,6 +361,90 @@ const StewardApplicationPage = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Category Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Select Categories You Want to Manage *
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {availableCategories.map(category => (
+                      <Card 
+                        key={category.id}
+                        className={`cursor-pointer transition-all duration-200 ${
+                          selectedCategories.includes(category.id) 
+                            ? 'border-blue-500 bg-blue-50' 
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                        onClick={() => handleCategoryToggle(category.id)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-medium">{category.name}</h4>
+                              <p className="text-sm text-gray-600">{category.description}</p>
+                            </div>
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                              selectedCategories.includes(category.id)
+                                ? 'border-blue-500 bg-blue-500'
+                                : 'border-gray-300'
+                            }`}>
+                              {selectedCategories.includes(category.id) && (
+                                <CheckCircle className="w-3 h-3 text-white" />
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                  {selectedCategories.length === 0 && (
+                    <p className="text-red-500 text-sm mt-2">Please select at least one category</p>
+                  )}
+                </div>
+
+                {/* Zone Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Select Zones You Want to Cover *
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {availableZones.map(zone => (
+                      <Card 
+                        key={zone.id}
+                        className={`cursor-pointer transition-all duration-200 ${
+                          selectedZones.includes(zone.id) 
+                            ? 'border-green-500 bg-green-50' 
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                        onClick={() => handleZoneToggle(zone.id)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-medium">{zone.name}</h4>
+                              {zone.description && (
+                                <p className="text-sm text-gray-600">{zone.description}</p>
+                              )}
+                            </div>
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                              selectedZones.includes(zone.id)
+                                ? 'border-green-500 bg-green-500'
+                                : 'border-gray-300'
+                            }`}>
+                              {selectedZones.includes(zone.id) && (
+                                <CheckCircle className="w-3 h-3 text-white" />
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                  {selectedZones.length === 0 && (
+                    <p className="text-red-500 text-sm mt-2">Please select at least one zone</p>
+                  )}
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Why do you want to become a steward? *
@@ -355,7 +490,7 @@ const StewardApplicationPage = () => {
 
                 <Button
                   type="submit"
-                  disabled={isSubmitting || justification.length < 50 || justification.length > 1000}
+                  disabled={isSubmitting || justification.length < 50 || justification.length > 1000 || selectedCategories.length === 0 || selectedZones.length === 0}
                   className="w-full bg-gradient-to-r from-[#3B38A0] to-[#1A2A80] hover:from-[#1A2A80] hover:to-[#3B38A0] text-white py-3"
                 >
                   {isSubmitting ? (

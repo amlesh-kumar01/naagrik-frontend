@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore, useAdminStore, useZoneStore } from '../../store';
+import { useAuthStore, useAdminStore, useZoneStore, useCategoryStore } from '../../store';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -36,10 +36,10 @@ const StewardManagementPage = () => {
     stewards,
     isLoading: adminLoading,
     error,
-    fetchStewards,
-    assignStewardToZone,
-    removeStewardFromZone,
-    bulkAssignStewards,
+    fetchAllStewards,
+    assignStewardToCategory,
+    bulkAssignSteward,
+    removeStewardAssignment,
     clearError
   } = useAdminStore();
   
@@ -47,6 +47,11 @@ const StewardManagementPage = () => {
     zones,
     fetchAllZones
   } = useZoneStore();
+
+  const {
+    categories,
+    fetchAllCategories
+  } = useCategoryStore();
   
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');

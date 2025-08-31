@@ -9,6 +9,7 @@ import { useBadgeStore } from './stores/badgeStore';
 import { useDashboardStore } from './stores/dashboardStore';
 import { useAdminStore } from './stores/adminStore';
 import useCommentsStore from './stores/commentsStore';
+import { useCategoryStore } from './stores/categoryStore';
 
 // Re-export all stores for backward compatibility
 export { useAuthStore };
@@ -21,3 +22,4 @@ export { useBadgeStore };
 export { useDashboardStore };
 export { useAdminStore };
 export { useCommentsStore };
+export { useCategoryStore };

@@ -53,11 +53,39 @@ export const adminAPI = {
   bulkUpdateUserRoles: (data) => api.put('/users/bulk/role', data),
 
   // Steward management
-  assignStewardToZone: (data) => api.post('/stewards/assignments', data),
+  // Steward management with new category-zone system
+  getAllStewards: (params = {}) => {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        searchParams.append(key, value);
+      }
+    });
+    const queryString = searchParams.toString();
+    return api.get(`/stewards${queryString ? `?${queryString}` : ''}`);
+  },
 
-  removeStewardFromZone: (data) => api.delete('/stewards/assignments', { data }),
+  assignStewardToCategory: (data) => api.post('/stewards/assignments/category', {
+    stewardId: data.stewardId,
+    categoryId: data.categoryId,
+    zoneId: data.zoneId,
+    notes: data.notes
+  }),
 
-  getAllStewards: () => api.get('/stewards'),
+  bulkAssignSteward: (data) => api.post('/stewards/assignments/bulk', {
+    stewardId: data.stewardId,
+    assignments: data.assignments
+  }),
+
+  removeStewardAssignment: (stewardId, categoryId, zoneId) => 
+    api.delete(`/stewards/assignments/${stewardId}/${categoryId}/${zoneId}`),
+
+  getStewardAssignments: (stewardId) => api.get(`/stewards/${stewardId}/assignments`),
+  getAllStewardAssignments: () => api.get('/stewards/assignments'),
+
+  // Legacy zone assignment (kept for backward compatibility)
+  assignStewardToZone: (data) => api.post('/stewards/assignments/legacy-zone', data),
+  removeStewardFromZone: (data) => api.delete('/stewards/assignments/legacy-zone', { data }),
 
   getStewardStats: (stewardId) => api.get(`/stewards/${stewardId}/stats`),
 

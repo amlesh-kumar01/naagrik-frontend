@@ -194,10 +194,10 @@ export const useAdminStore = create((set, get) => ({
   },
 
   // Steward Management Actions
-  fetchAllStewards: async () => {
+  fetchAllStewards: async (params = {}) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await adminAPI.getAllStewards();
+      const response = await adminAPI.getAllStewards(params);
       const stewards = response.data?.stewards || response.stewards || [];
       set({ stewards, isLoading: false });
       return { success: true, stewards };
@@ -208,6 +208,7 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
+  // Legacy zone assignment (kept for compatibility)
   assignStewardToZone: async (stewardId, zoneId) => {
     set({ isLoading: true, error: null });
     try {
@@ -229,6 +230,82 @@ export const useAdminStore = create((set, get) => ({
       return { success: true, data: response.data };
     } catch (error) {
       const errorMessage = error.message || 'Failed to remove steward from zone';
+      set({ error: errorMessage, isLoading: false });
+      return { success: false, error: errorMessage };
+    }
+  },
+
+  // NEW Category-Zone Assignment Methods
+  assignStewardToCategory: async (assignmentData) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await adminAPI.assignStewardToCategory({
+        stewardId: assignmentData.stewardId,
+        categoryId: assignmentData.categoryId,
+        zoneId: assignmentData.zoneId,
+        notes: assignmentData.notes
+      });
+      set({ isLoading: false });
+      return { success: true, data: response.data };
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to assign steward to category';
+      set({ error: errorMessage, isLoading: false });
+      return { success: false, error: errorMessage };
+    }
+  },
+
+  bulkAssignSteward: async (assignmentData) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await adminAPI.bulkAssignSteward({
+        stewardId: assignmentData.stewardId,
+        assignments: assignmentData.assignments
+      });
+      set({ isLoading: false });
+      return { success: true, data: response.data };
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to bulk assign steward';
+      set({ error: errorMessage, isLoading: false });
+      return { success: false, error: errorMessage };
+    }
+  },
+
+  removeStewardAssignment: async (stewardId, categoryId, zoneId) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await adminAPI.removeStewardAssignment(stewardId, categoryId, zoneId);
+      set({ isLoading: false });
+      return { success: true, data: response.data };
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to remove steward assignment';
+      set({ error: errorMessage, isLoading: false });
+      return { success: false, error: errorMessage };
+    }
+  },
+
+  fetchStewardAssignments: async (stewardId) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await adminAPI.getStewardAssignments(stewardId);
+      const assignments = response.data?.assignments || response.assignments || [];
+      set({ isLoading: false });
+      return { success: true, assignments };
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to fetch steward assignments';
+      set({ error: errorMessage, isLoading: false });
+      return { success: false, error: errorMessage };
+    }
+  },
+
+  fetchAllStewardAssignments: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await adminAPI.getAllStewardAssignments();
+      const assignments = response.data?.assignments || response.assignments || [];
+      set({ isLoading: false });
+      return { success: true, assignments };
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to fetch all steward assignments';
       set({ error: errorMessage, isLoading: false });
       return { success: false, error: errorMessage };
     }

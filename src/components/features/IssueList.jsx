@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useIssuesStore } from '@/store';
+import { useIssuesStore, useZoneStore, useCategoryStore } from '@/store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,6 +43,7 @@ const IssueList = ({
   const [filters, setFilters] = useState({
     search: '',
     category: category || 'all',
+    zone: 'all',
     status: status || 'all',
     priority: priority || 'all',
     sortBy: 'created_at',
@@ -71,6 +72,11 @@ const IssueList = ({
     // Apply category filter
     if (filters.category !== 'all') {
       filtered = filtered.filter(issue => issue.category_name === filters.category);
+    }
+
+    // Apply zone filter
+    if (filters.zone !== 'all') {
+      filtered = filtered.filter(issue => issue.zone_name === filters.zone);
     }
 
     // Apply status filter
@@ -114,6 +120,7 @@ const IssueList = ({
         page: 1,
         limit: limit || 20,
         category: filters.category !== 'all' ? filters.category : undefined,
+        zone: filters.zone !== 'all' ? filters.zone : undefined,
         status: filters.status !== 'all' ? filters.status : undefined,
         priority: filters.priority !== 'all' ? filters.priority : undefined,
         sortBy: filters.sortBy,
@@ -180,6 +187,7 @@ const IssueList = ({
   };
 
   const categories = [...new Set(issues.map(issue => issue.category_name).filter(Boolean))];
+  const zones = [...new Set(issues.map(issue => issue.zone_name).filter(Boolean))];
   const statuses = ['OPEN', 'ACKNOWLEDGED', 'IN_PROGRESS', 'RESOLVED'];
   const priorities = ['LOW', 'MEDIUM', 'HIGH'];
 
@@ -266,7 +274,7 @@ const IssueList = ({
             )}
 
             {showFilters && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">Category</label>
                   <select
@@ -277,6 +285,20 @@ const IssueList = ({
                     <option value="all">All Categories</option>
                     {categories.map((cat, index) => (
                       <option key={`category-${index}-${cat}`} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Zone</label>
+                  <select
+                    value={filters.zone}
+                    onChange={(e) => handleFilterChange('zone', e.target.value)}
+                    className="w-full text-sm border rounded px-3 py-2"
+                  >
+                    <option value="all">All Zones</option>
+                    {zones.map((zone, index) => (
+                      <option key={`zone-${index}-${zone}`} value={zone}>{zone}</option>
                     ))}
                   </select>
                 </div>
@@ -333,6 +355,17 @@ const IssueList = ({
                   <span>Category: {filters.category}</span>
                   <button
                     onClick={() => handleFilterChange('category', 'all')}
+                    className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
+                  >
+                    ×
+                  </button>
+                </Badge>
+              )}
+              {filters.zone !== 'all' && (
+                <Badge variant="secondary" className="flex items-center space-x-1">
+                  <span>Zone: {filters.zone}</span>
+                  <button
+                    onClick={() => handleFilterChange('zone', 'all')}
                     className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
                   >
                     ×

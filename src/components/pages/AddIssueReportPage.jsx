@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingSpinner } from '@/components/ui/loading';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import InteractiveMap from '@/components/features/InteractiveMap';
-import { useIssuesStore } from '@/store';
+import { useIssuesStore, useZoneStore, useCategoryStore } from '@/store';
 import { issueAPI } from '@/lib/api';
 import { 
   MapPin, 
@@ -38,6 +38,7 @@ const AddIssueReportPage = () => {
     title: '',
     description: '',
     categoryId: '',
+    zoneId: '',
     priority: 'MEDIUM',
     locationLat: '',
     locationLng: '',
@@ -50,7 +51,9 @@ const AddIssueReportPage = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [zones, setZones] = useState([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [isLoadingZones, setIsLoadingZones] = useState(true);
   
   // Map related states
   const [showMap, setShowMap] = useState(true);
@@ -60,23 +63,42 @@ const AddIssueReportPage = () => {
   const [mapZoom, setMapZoom] = useState(13);
   
   const { createIssue } = useIssuesStore();
+  const { fetchAvailableZones } = useZoneStore();
+  const { fetchAllCategories } = useCategoryStore();
   const { getCurrentLocation } = useLocationService();
 
-  // Fetch categories on mount
+  // Fetch categories and zones on mount
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       try {
-        const response = await issueAPI.getCategories();
-        setCategories(response.data.categories);
+        // Fetch categories
+        const categoriesResult = await fetchAllCategories();
+        if (categoriesResult.success) {
+          setCategories(categoriesResult.categories);
+        } else {
+          setErrors(prev => ({ ...prev, categories: categoriesResult.error || 'Failed to load categories' }));
+        }
+        
+        // Fetch zones
+        const zonesResult = await fetchAvailableZones();
+        if (zonesResult.success) {
+          setZones(zonesResult.zones);
+        } else {
+          setErrors(prev => ({ ...prev, zones: zonesResult.error || 'Failed to load zones' }));
+        }
       } catch (error) {
-        console.error('Failed to fetch categories:', error);
-        setErrors(prev => ({ ...prev, categories: 'Failed to load categories' }));
+        console.error('Failed to fetch data:', error);
+        setErrors(prev => ({ 
+          ...prev, 
+          general: 'Failed to load form data. Please refresh the page.' 
+        }));
       } finally {
         setIsLoadingCategories(false);
+        setIsLoadingZones(false);
       }
     };
 
-    fetchCategories();
+    fetchData();
     getCurrentLocationHandler(); // Auto-get user location on load
   }, []);
 
@@ -256,6 +278,10 @@ const AddIssueReportPage = () => {
 
     if (!formData.categoryId) {
       newErrors.category = 'Category is required';
+    }
+
+    if (!formData.zoneId) {
+      newErrors.zone = 'Zone is required';
     }
 
     if (!formData.locationLat || !formData.locationLng) {
@@ -626,6 +652,39 @@ const AddIssueReportPage = () => {
                         <p className="text-red-500 text-sm flex items-center">
                           <AlertTriangle className="h-4 w-4 mr-1" />
                           {errors.category}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Zone */}
+                    <div className="space-y-2">
+                      <label className="block text-sm font-bold text-[#1A2A80]">
+                        Zone *
+                      </label>
+                      {isLoadingZones ? (
+                        <div className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 bg-gray-50 flex items-center">
+                          <LoadingSpinner size="sm" className="mr-2" />
+                          <span className="text-gray-600">Loading zones...</span>
+                        </div>
+                      ) : (
+                        <select
+                          name="zoneId"
+                          value={formData.zoneId}
+                          onChange={handleInputChange}
+                          className={`w-full border-2 rounded-lg px-4 py-3 bg-white transition-all duration-200 focus:ring-2 focus:ring-[#B2B0E8] ${
+                            errors.zone ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#7A85C1]'
+                          }`}
+                        >
+                          <option value="">Select a zone</option>
+                          {zones.map(zone => (
+                            <option key={zone.id} value={zone.id}>{zone.name}</option>
+                          ))}
+                        </select>
+                      )}
+                      {errors.zone && (
+                        <p className="text-red-500 text-sm flex items-center">
+                          <AlertTriangle className="h-4 w-4 mr-1" />
+                          {errors.zone}
                         </p>
                       )}
                     </div>

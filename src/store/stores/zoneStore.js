@@ -1,9 +1,12 @@
 import { create } from 'zustand';
 import { zoneAPI } from '../../lib/api/zoneApi';
+import { categoryAPI } from '../../lib/api/categoryApi';
 
 export const useZoneStore = create((set, get) => ({
   // State
   zones: [],
+  availableZones: [], // Public zones for issue creation
+  categories: [],
   currentZone: null,
   zoneStats: null,
   zoneIssues: [],
@@ -11,7 +14,50 @@ export const useZoneStore = create((set, get) => ({
   isLoading: false,
   error: null,
 
-  // Actions
+  // Public Actions (for issue creation)
+  fetchAvailableZones: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await zoneAPI.getAvailableZones();
+      const zones = response.data?.zones || response.zones || [];
+      set({ availableZones: zones, isLoading: false });
+      return { success: true, zones };
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to fetch available zones';
+      set({ error: errorMessage, isLoading: false });
+      return { success: false, error: errorMessage };
+    }
+  },
+
+  searchZones: async (query) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await zoneAPI.searchZones(query);
+      const zones = response.data?.zones || response.zones || [];
+      set({ availableZones: zones, isLoading: false });
+      return { success: true, zones };
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to search zones';
+      set({ error: errorMessage, isLoading: false });
+      return { success: false, error: errorMessage };
+    }
+  },
+
+  fetchCategories: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await zoneAPI.getCategories();
+      const categories = response.data?.categories || response.categories || [];
+      set({ categories, isLoading: false });
+      return { success: true, categories };
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to fetch categories';
+      set({ error: errorMessage, isLoading: false });
+      return { success: false, error: errorMessage };
+    }
+  },
+
+  // Admin Actions
   fetchAllZones: async () => {
     set({ isLoading: true, error: null });
     try {
@@ -154,4 +200,73 @@ export const useZoneStore = create((set, get) => ({
 
   clearError: () => set({ error: null }),
   clearCurrentZone: () => set({ currentZone: null, zoneStats: null, zoneIssues: [], zoneStewards: [] }),
+
+  // Category management actions
+  createCategory: async (categoryData) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await categoryAPI.createCategory(categoryData);
+      const newCategory = response.data?.category || response.category;
+      
+      // Update categories list
+      const { categories } = get();
+      set({ 
+        categories: [...categories, newCategory], 
+        isLoading: false 
+      });
+      
+      return { success: true, category: newCategory };
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to create category';
+      set({ error: errorMessage, isLoading: false });
+      return { success: false, error: errorMessage };
+    }
+  },
+
+  updateCategory: async (categoryId, categoryData) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await categoryAPI.updateCategory(categoryId, categoryData);
+      const updatedCategory = response.data?.category || response.category;
+      
+      // Update categories list
+      const { categories } = get();
+      const updatedCategories = categories.map(category => 
+        category.id === categoryId ? updatedCategory : category
+      );
+      
+      set({ 
+        categories: updatedCategories,
+        isLoading: false 
+      });
+      
+      return { success: true, category: updatedCategory };
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to update category';
+      set({ error: errorMessage, isLoading: false });
+      return { success: false, error: errorMessage };
+    }
+  },
+
+  deleteCategory: async (categoryId) => {
+    set({ isLoading: true, error: null });
+    try {
+      await categoryAPI.deleteCategory(categoryId);
+      
+      // Remove from categories list
+      const { categories } = get();
+      const filteredCategories = categories.filter(category => category.id !== categoryId);
+      
+      set({ 
+        categories: filteredCategories,
+        isLoading: false 
+      });
+      
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to delete category';
+      set({ error: errorMessage, isLoading: false });
+      return { success: false, error: errorMessage };
+    }
+  },
 }));

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore, useIssuesStore } from '../../store';
+import { useAuthStore, useIssuesStore, useStewardStore } from '../../store';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -31,6 +31,7 @@ import {
 const StewardDashboardPage = () => {
   const { user, isAuthenticated, isInitialized } = useAuthStore();
   const { issues, isLoading, error, fetchIssues } = useIssuesStore();
+  const { myCategories, fetchMyCategories } = useStewardStore();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
   const [assignedIssues, setAssignedIssues] = useState([]);

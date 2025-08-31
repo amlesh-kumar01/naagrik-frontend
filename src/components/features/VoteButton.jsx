@@ -209,20 +209,20 @@ const VoteButton = ({
   if (compact) {
     // Compact layout for issue cards
     return (
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-1">
         <Button
           onClick={() => handleVote('upvote')}
           variant="ghost"
           size="sm"
           disabled={!user || isVoting}
-          className={`flex items-center space-x-1 h-8 px-2 transition-all duration-200 ${
+          className={`flex items-center space-x-1 h-9 px-3 transition-all duration-200 border ${
             localUserVote === 'upvote'
-              ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
-              : 'text-gray-600 hover:bg-green-50 hover:text-green-600'
+              ? 'bg-green-50 text-green-700 hover:bg-green-100 border-green-300'
+              : 'text-gray-600 hover:bg-green-50 hover:text-green-600 border-transparent hover:border-green-200'
           } ${isVoting ? 'opacity-50' : ''}`}
         >
-          <ThumbsUp className={`h-3 w-3 ${localUserVote === 'upvote' ? 'fill-current' : ''}`} />
-          <span className="text-xs font-medium">{localVoteStats.upvotes}</span>
+          <ThumbsUp className={`h-4 w-4 ${localUserVote === 'upvote' ? 'fill-current' : ''}`} />
+          <span className="text-sm font-medium">{localVoteStats.upvotes}</span>
         </Button>
         
         <Button
@@ -230,14 +230,14 @@ const VoteButton = ({
           variant="ghost"
           size="sm"
           disabled={!user || isVoting}
-          className={`flex items-center space-x-1 h-8 px-2 transition-all duration-200 ${
+          className={`flex items-center space-x-1 h-9 px-3 transition-all duration-200 border ${
             localUserVote === 'downvote'
-              ? 'bg-red-100 text-red-700 hover:bg-red-200 border border-red-300'
-              : 'text-gray-600 hover:bg-red-50 hover:text-red-600'
+              ? 'bg-red-50 text-red-700 hover:bg-red-100 border-red-300'
+              : 'text-gray-600 hover:bg-red-50 hover:text-red-600 border-transparent hover:border-red-200'
           } ${isVoting ? 'opacity-50' : ''}`}
         >
-          <ThumbsDown className={`h-3 w-3 ${localUserVote === 'downvote' ? 'fill-current' : ''}`} />
-          <span className="text-xs font-medium">{localVoteStats.downvotes}</span>
+          <ThumbsDown className={`h-4 w-4 ${localUserVote === 'downvote' ? 'fill-current' : ''}`} />
+          <span className="text-sm font-medium">{localVoteStats.downvotes}</span>
         </Button>
       </div>
     );

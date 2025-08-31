@@ -198,29 +198,30 @@ const IssueManagementActions = ({
   if (compact) {
     return (
       <div className={`flex items-center space-x-1 ${className}`}>
-        {/* Quick Status Actions */}
+        {/* Quick Actions Dropdown */}
         {availableTransitions.length > 0 && (
           <div className="relative group">
             <Button 
-              variant="outline" 
+              variant="ghost" 
               size="sm"
-              className="h-8 px-2"
+              className="h-9 px-3 text-gray-600 hover:text-gray-700 hover:bg-gray-50 border border-transparent hover:border-gray-200"
             >
-              <MoreHorizontal className="h-3 w-3" />
+              <MoreHorizontal className="h-4 w-4" />
             </Button>
-            <div className="absolute top-full left-0 mt-1 z-10 hidden group-hover:block bg-white shadow-lg border rounded-lg p-1 min-w-[120px]">
+            <div className="absolute top-full right-0 mt-1 z-50 hidden group-hover:block bg-white shadow-lg border rounded-lg p-2 min-w-[140px]">
               {availableTransitions.slice(0, 3).map(status => {
                 const Icon = status.icon;
                 return (
                   <button
                     key={status.value}
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setNewStatus(status.value);
                       setShowStatusModal(true);
                     }}
-                    className="w-full text-left px-2 py-1 text-xs hover:bg-gray-50 rounded flex items-center space-x-1"
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded flex items-center space-x-2 transition-colors"
                   >
-                    <Icon className="h-3 w-3" />
+                    <Icon className="h-4 w-4" />
                     <span>{status.label}</span>
                   </button>
                 );
@@ -234,10 +235,13 @@ const IssueManagementActions = ({
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={() => setShowArchiveModal(true)}
-            className="h-8 px-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowArchiveModal(true);
+            }}
+            className="h-9 px-3 text-amber-600 hover:text-amber-700 hover:bg-amber-50 border border-transparent hover:border-amber-200"
           >
-            <Archive className="h-3 w-3" />
+            <Archive className="h-4 w-4" />
           </Button>
         )}
 
@@ -246,10 +250,13 @@ const IssueManagementActions = ({
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={() => setShowDeleteModal(true)}
-            className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowDeleteModal(true);
+            }}
+            className="h-9 px-3 text-red-600 hover:text-red-700 hover:bg-red-50 border border-transparent hover:border-red-200"
           >
-            <Trash2 className="h-3 w-3" />
+            <Trash2 className="h-4 w-4" />
           </Button>
         )}
       </div>

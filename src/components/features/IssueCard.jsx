@@ -182,39 +182,11 @@ const IssueCard = ({
       className={`hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02] border border-gray-200 bg-white ${className}`}
       onClick={handleCardClick}
     >
-      <CardContent className="p-6">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <div className="flex items-center space-x-2 mb-2">
-              <Badge 
-                variant="outline" 
-                className={`text-xs px-2 py-1 ${getStatusColor(issue.status)}`}
-              >
-                <div className="flex items-center space-x-1">
-                  {getStatusIcon(issue.status)}
-                  <span>{issue.status.replace('_', ' ')}</span>
-                </div>
-              </Badge>
-              <Badge className="text-xs px-2 py-1 bg-blue-50 text-blue-700 border-blue-200">
-                {issue.category_name || 'General'}
-              </Badge>
-            </div>
-            
-            <h3 className="text-lg font-semibold text-gray-900 hover:text-[#1A2A80] line-clamp-2 mb-2 leading-snug">
-              {issue.title}
-            </h3>
-            
-            <p className="text-gray-600 line-clamp-2 text-sm leading-relaxed">
-              {issue.description}
-            </p>
-          </div>
-        </div>
-
-        {/* Media Thumbnail */}
-        {issue.has_media && issue.thumbnail_url && (
-          <div className="mb-4">
-            <div className="relative rounded-lg overflow-hidden bg-gray-100 group h-32">
+      <CardContent className="p-0">
+        {/* Media Section - Fixed Height for Consistency */}
+        <div className="relative h-48 bg-gray-50">
+          {issue.has_media && issue.thumbnail_url ? (
+            <>
               <img
                 src={issue.thumbnail_url}
                 alt={issue.title}
@@ -222,100 +194,139 @@ const IssueCard = ({
               />
               {/* Media count overlay */}
               {parseInt(issue.media_count) > 1 && (
-                <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
-                  <Camera className="h-3 w-3 inline mr-1" />
+                <div className="absolute top-3 right-3 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-md flex items-center">
+                  <Camera className="h-3 w-3 mr-1" />
                   {issue.media_count}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 border-b">
+              <div className="text-center">
+                <Camera className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                <p className="text-xs text-gray-400">No image available</p>
+              </div>
+            </div>
+          )}
+          
+          {/* Status Badge Overlay */}
+          <div className="absolute top-3 left-3">
+            <Badge 
+              variant="outline" 
+              className={`text-xs px-2 py-1 bg-white/90 backdrop-blur-sm ${getStatusColor(issue.status)}`}
+            >
+              <div className="flex items-center space-x-1">
+                {getStatusIcon(issue.status)}
+                <span>{issue.status.replace('_', ' ')}</span>
+              </div>
+            </Badge>
+          </div>
+        </div>
+
+        {/* Content Section */}
+        <div className="p-4">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-lg font-semibold text-gray-900 hover:text-[#1A2A80] line-clamp-2 mb-2 leading-snug">
+                {issue.title}
+              </h3>
+              
+              <p className="text-gray-600 line-clamp-2 text-sm leading-relaxed mb-3">
+                {issue.description}
+              </p>
+
+              {/* Category and Priority */}
+              <div className="flex items-center space-x-2 mb-3">
+                <Badge className="text-xs px-2 py-1 bg-blue-50 text-blue-700 border-blue-200">
+                  {issue.category_name || 'General'}
+                </Badge>
+                <Badge variant="outline" className={`text-xs px-2 py-1 ${getPriorityColor(issue.priority)}`}>
+                  {issue.priority}
+                </Badge>
+              </div>
+
+              {/* Location */}
+              {showLocation && issue.address && (
+                <div className="flex items-center text-xs text-gray-500 mb-3 bg-gray-50 px-2 py-1 rounded">
+                  <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+                  <span className="line-clamp-1">{issue.address}</span>
                 </div>
               )}
             </div>
           </div>
-        )}
 
-        {/* Location */}
-        {showLocation && issue.address && (
-          <div className="flex items-center text-sm text-gray-600 mb-4 bg-gray-50 px-3 py-2 rounded-lg">
-            <MapPin className="h-4 w-4 mr-2 text-gray-500 flex-shrink-0" />
-            <span className="line-clamp-1">{issue.address}</span>
-          </div>
-        )}
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+            {/* User Info */}
+            <div className="flex items-center space-x-2">
+              <Avatar className="h-7 w-7">
+                <AvatarImage src={issue.user_avatar} alt={issue.user_name} />
+                <AvatarFallback className="bg-[#1A2A80] text-white text-xs">
+                  {issue.user_name?.charAt(0)?.toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="text-sm font-medium text-gray-900">
+                  {issue.user_name || 'Anonymous'}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {formatRelativeTime(issue.created_at)}
+                </p>
+              </div>
+            </div>
 
-        {/* Category */}
-        <div className="mb-4">
-          <Badge variant="secondary" className="text-xs px-3 py-1 bg-blue-50 text-blue-700 border-blue-200">
-            {issue.category_name || 'General'}
-          </Badge>
-        </div>
+            {/* Actions Row */}
+            <div className="flex items-center space-x-1">
+              {/* Vote Buttons */}
+              <div onClick={(e) => e.stopPropagation()}>
+                <VoteButton 
+                  issueId={issue.id}
+                  userVoteStatus={issue.user_vote_status}
+                  voteStats={{
+                    upvotes: parseInt(issue.upvote_count) || 0,
+                    downvotes: parseInt(issue.downvote_count) || 0
+                  }}
+                  onVoteChange={(voteData) => {
+                    if (onIssueUpdate) {
+                      onIssueUpdate(issue.id, {
+                        upvote_count: voteData.upvotes,
+                        downvote_count: voteData.downvotes,
+                        vote_score: voteData.vote_score,
+                        user_vote_status: voteData.userVoteStatus
+                      });
+                    }
+                  }}
+                  compact={true}
+                />
+              </div>
+              
+              {/* Comments Button */}
+              <Link href={`/issues/${issue.id}`} onClick={(e) => e.stopPropagation()}>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="flex items-center space-x-1 text-gray-600 hover:text-[#1A2A80] hover:bg-blue-50 h-9 px-3 border border-transparent hover:border-blue-200"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  <span className="font-medium text-sm">{issue.comment_count || 0}</span>
+                </Button>
+              </Link>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-          {/* User Info */}
-          <div className="flex items-center space-x-3">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={issue.user_avatar} alt={issue.user_name} />
-              <AvatarFallback className="bg-[#1A2A80] text-white text-xs">
-                {issue.user_name?.charAt(0)?.toUpperCase() || 'U'}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-sm font-medium text-gray-900">
-                {issue.user_name || 'Anonymous'}
-              </p>
-              <p className="text-xs text-gray-500">
-                {formatRelativeTime(issue.created_at)}
-              </p>
+              {/* Management Actions */}
+              {showManagementActions && canManage && (
+                <div onClick={(e) => e.stopPropagation()}>
+                  <IssueManagementActions
+                    issue={issue}
+                    onStatusUpdate={onStatusUpdate}
+                    onIssueRemoved={onIssueRemoved}
+                    compact={true}
+                  />
+                </div>
+              )}
             </div>
           </div>
-
-          {/* Actions */}
-          <div className="flex items-center space-x-3">
-            {/* Vote Buttons */}
-            <VoteButton 
-              issueId={issue.id}
-              userVoteStatus={issue.user_vote_status}
-              voteStats={{
-                upvotes: parseInt(issue.upvote_count) || 0,
-                downvotes: parseInt(issue.downvote_count) || 0
-              }}
-              onVoteChange={(voteData) => {
-                // Update the issue data in the parent component
-                if (onIssueUpdate) {
-                  onIssueUpdate(issue.id, {
-                    upvote_count: voteData.upvotes,
-                    downvote_count: voteData.downvotes,
-                    vote_score: voteData.vote_score,
-                    user_vote_status: voteData.userVoteStatus
-                  });
-                }
-              }}
-              compact={true}
-            />
-            
-            {/* Comments */}
-            <Link href={`/issues/${issue.id}`}>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="flex items-center space-x-1 text-gray-600 hover:text-[#1A2A80] hover:bg-blue-50"
-              >
-                <MessageCircle className="h-4 w-4" />
-                <span className="font-medium">{issue.comment_count || 0}</span>
-              </Button>
-            </Link>
-          </div>
         </div>
-
-        {/* Management Actions - Only for Stewards/Admins */}
-        {showManagementActions && canManage && (
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <IssueManagementActions
-              issue={issue}
-              onStatusUpdate={onStatusUpdate}
-              onIssueRemoved={onIssueRemoved}
-              compact={true}
-              className="justify-end"
-            />
-          </div>
-        )}
       </CardContent>
     </Card>
   );

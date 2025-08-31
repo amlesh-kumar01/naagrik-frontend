@@ -67,8 +67,8 @@ const Header = () => {
     navigationItems.push({ name: 'Become Steward', href: '/steward/apply', icon: Award });
   }
 
-  // Only show steward dashboard for actual stewards and super admins
-  if (user && (user.role === 'STEWARD' || user.role === 'SUPER_ADMIN')) {
+  // Only show steward dashboard for actual stewards only
+  if (user && user.role === 'STEWARD') {
     navigationItems.push({ name: 'Steward Dashboard', href: '/steward', icon: Shield });
   }
 

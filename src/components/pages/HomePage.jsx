@@ -39,16 +39,21 @@ const HomePage = () => {
     
     if (result.success) {
       const statsData = result.stats;
+      // Calculate response rate as percentage of resolved issues out of total issues
+      const totalIssues = statsData.total_issues || 0;
+      const resolvedIssues = statsData.resolved_issues || 0;
+      const responseRate = totalIssues > 0 ? Math.round((resolvedIssues / totalIssues) * 100) : 0;
+
       setStats([
         { 
           label: 'Issues Reported', 
-          value: statsData.total_issues?.toLocaleString() || '0', 
+          value: totalIssues.toLocaleString(), 
           icon: AlertTriangle, 
           color: 'text-blue-600' 
         },
         { 
           label: 'Issues Resolved', 
-          value: statsData.resolved_issues?.toLocaleString() || '0', 
+          value: resolvedIssues.toLocaleString(), 
           icon: CheckCircle, 
           color: 'text-green-600' 
         },
@@ -60,7 +65,7 @@ const HomePage = () => {
         },
         { 
           label: 'Response Rate', 
-          value: `${statsData.response_rate || 0}%`, 
+          value: `${responseRate}%`, 
           icon: TrendingUp, 
           color: 'text-orange-600' 
         },

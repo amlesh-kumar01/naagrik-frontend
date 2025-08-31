@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore, useIssuesStore, useStewardStore } from '../../store';
+import { stewardAPI } from '../../lib/api/stewardApi';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -35,6 +36,8 @@ const StewardDashboardPage = () => {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
   const [assignedIssues, setAssignedIssues] = useState([]);
+  const [stewardStats, setStewardStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
 
   // Handle client-side mounting
@@ -46,49 +49,46 @@ const StewardDashboardPage = () => {
     // Only run redirect logic after component has mounted and auth is initialized
     if (!mounted || !isInitialized || authLoading) return;
     
-    if (!user || (user.role !== 'STEWARD' && user.role !== 'SUPER_ADMIN')) {
+    // Only allow STEWARD role users
+    if (!user || user.role !== 'STEWARD') {
       router.push('/');
       return;
     }
 
     if (user) {
-      fetchIssues();
+      fetchStewardData();
     }
-  }, [mounted, user, router, isInitialized, authLoading, fetchIssues]);
+  }, [mounted, user, router, isInitialized, authLoading]);
 
-  useEffect(() => {
-    if (issues && user) {
-      if (user.role === 'SUPER_ADMIN') {
-        // Admins can see all issues
-        setAssignedIssues(issues);
-      } else {
-        // Stewards only see issues assigned to them or in their zone
-        const stewardIssues = issues.filter(issue => 
-          issue.assignedSteward === user.id || issue.zone === user.assignedZone
-        );
-        setAssignedIssues(stewardIssues);
-      }
+  const fetchStewardData = async () => {
+    try {
+      setStatsLoading(true);
+      
+      // Fetch steward stats
+      const statsResponse = await stewardAPI.getMyStewardStats();
+      setStewardStats(statsResponse.data);
+      
+      // Fetch assigned issues
+      const issuesResponse = await stewardAPI.getMyAssignedIssues();
+      setAssignedIssues(issuesResponse.data?.issues || []);
+      
+    } catch (error) {
+      console.error('Failed to fetch steward data:', error);
+    } finally {
+      setStatsLoading(false);
     }
-  }, [issues, user]);
+  };
 
-  if (!isInitialized || isLoading) {
-    return <LoadingCard />;
-  }
-
-  if (!isAuthenticated || (user?.role !== 'STEWARD' && user?.role !== 'SUPER_ADMIN')) {
-    return null;
-  }
-
-  // Calculate stats
-  const totalAssigned = assignedIssues.length;
-  const resolved = assignedIssues.filter(issue => issue.status === 'resolved').length;
-  const inProgress = assignedIssues.filter(issue => issue.status === 'in_progress').length;
-  const pending = assignedIssues.filter(issue => issue.status === 'pending').length;
-  const resolutionRate = totalAssigned > 0 ? Math.round((resolved / totalAssigned) * 100) : 0;
+  // Calculate stats from API data or fallback to local calculation
+  const totalAssigned = stewardStats?.totalAssigned || assignedIssues.length;
+  const resolved = stewardStats?.resolved || assignedIssues.filter(issue => issue.status === 'resolved').length;
+  const inProgress = stewardStats?.inProgress || assignedIssues.filter(issue => issue.status === 'in_progress').length;
+  const pending = stewardStats?.pending || assignedIssues.filter(issue => issue.status === 'pending').length;
+  const resolutionRate = stewardStats?.resolutionRate || (totalAssigned > 0 ? Math.round((resolved / totalAssigned) * 100) : 0);
 
   const stats = [
     {
-      title: user?.role === 'SUPER_ADMIN' ? 'Total Issues' : 'Assigned Issues',
+      title: 'Assigned Issues',
       value: totalAssigned,
       icon: AlertTriangle,
       color: 'text-blue-600',
@@ -109,7 +109,7 @@ const StewardDashboardPage = () => {
       bgColor: 'bg-yellow-50'
     },
     {
-      title: user?.role === 'SUPER_ADMIN' ? 'Overall Resolution Rate' : 'Resolution Rate',
+      title: 'Resolution Rate',
       value: `${resolutionRate}%`,
       icon: TrendingUp,
       color: 'text-purple-600',
@@ -139,8 +139,8 @@ const StewardDashboardPage = () => {
     }
   };
 
-  // Show loading while mounting or auth is initializing
-  if (!mounted || !isInitialized || authLoading) {
+  // Show loading while mounting, auth is initializing, or stats are loading
+  if (!mounted || !isInitialized || authLoading || statsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: colors.gradients.secondary }}>
         <LoadingCard message="Loading dashboard..." />
@@ -160,28 +160,18 @@ const StewardDashboardPage = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  {user?.role === 'SUPER_ADMIN' ? 'Steward Overview (Admin View)' : 'Steward Dashboard'}
+                  Steward Dashboard
                 </h1>
                 <p className="text-gray-600">
-                  {user?.role === 'SUPER_ADMIN' 
-                    ? `Admin oversight - ${user?.fullName}` 
-                    : `Welcome back, ${user?.fullName}`
-                  }
+                  Welcome back, {user?.fullName}
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              {user?.role === 'SUPER_ADMIN' ? (
-                <Badge variant="secondary" className="bg-red-100 text-red-800">
-                  <Shield className="h-3 w-3 mr-1" />
-                  Admin
-                </Badge>
-              ) : (
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                  <Shield className="h-3 w-3 mr-1" />
-                  Steward
-                </Badge>
-              )}
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                <Shield className="h-3 w-3 mr-1" />
+                Steward
+              </Badge>
               {user?.assignedZone && (
                 <Badge variant="outline">
                   <MapPin className="h-3 w-3 mr-1" />
@@ -236,7 +226,7 @@ const StewardDashboardPage = () => {
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg font-semibold">
-                    {user?.role === 'SUPER_ADMIN' ? 'All Issues' : 'Assigned Issues'}
+                    Assigned Issues
                   </CardTitle>
                   <Button variant="outline" size="sm" onClick={() => router.push('/issues')}>
                     View All
@@ -343,17 +333,6 @@ const StewardDashboardPage = () => {
                 <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {user?.role === 'SUPER_ADMIN' && (
-                  <Button 
-                    variant="primary" 
-                    className="w-full justify-start"
-                    onClick={() => router.push('/admin')}
-                  >
-                    <Shield className="h-4 w-4 mr-2" />
-                    Admin Dashboard
-                  </Button>
-                )}
-                
                 <Button 
                   variant="outline" 
                   className="w-full justify-start"

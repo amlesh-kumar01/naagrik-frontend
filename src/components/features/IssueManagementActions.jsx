@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuthStore, useIssuesStore } from '@/store';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -50,6 +50,7 @@ const IssueManagementActions = ({
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
   const [archiveReason, setArchiveReason] = useState('');
   const [archiveType, setArchiveType] = useState('RESOLVED_EXTERNALLY');
@@ -59,6 +60,18 @@ const IssueManagementActions = ({
   const [newStatus, setNewStatus] = useState('');
   const [statusReason, setStatusReason] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isDropdownOpen && !event.target.closest('.dropdown-container')) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isDropdownOpen]);
 
   // Role-based permissions (CITIZEN, STEWARD, SUPER_ADMIN only)
   const isCitizen = user?.role === 'CITIZEN';
@@ -200,33 +213,40 @@ const IssueManagementActions = ({
       <div className={`flex items-center space-x-1 ${className}`}>
         {/* Quick Actions Dropdown */}
         {availableTransitions.length > 0 && (
-          <div className="relative group">
+          <div className="relative dropdown-container">
             <Button 
               variant="ghost" 
               size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDropdownOpen(!isDropdownOpen);
+              }}
               className="h-9 px-3 text-gray-600 hover:text-gray-700 hover:bg-gray-50 border border-transparent hover:border-gray-200"
             >
               <MoreHorizontal className="h-4 w-4" />
             </Button>
-            <div className="absolute top-full right-0 mt-1 z-50 hidden group-hover:block bg-white shadow-lg border rounded-lg p-2 min-w-[140px]">
-              {availableTransitions.slice(0, 3).map(status => {
-                const Icon = status.icon;
-                return (
-                  <button
-                    key={status.value}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setNewStatus(status.value);
-                      setShowStatusModal(true);
-                    }}
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded flex items-center space-x-2 transition-colors"
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span>{status.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+            {isDropdownOpen && (
+              <div className="absolute top-full right-0 mt-1 z-[100] bg-white shadow-xl border rounded-lg p-1 min-w-[160px] max-w-[200px]">
+                {availableTransitions.slice(0, 3).map(status => {
+                  const Icon = status.icon;
+                  return (
+                    <button
+                      key={status.value}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setNewStatus(status.value);
+                        setShowStatusModal(true);
+                        setIsDropdownOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 rounded flex items-center space-x-2 transition-colors"
+                    >
+                      <Icon className="h-4 w-4 text-gray-500" />
+                      <span className="text-gray-700">{status.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 

@@ -29,28 +29,32 @@ import {
 } from 'lucide-react';
 
 const StewardDashboardPage = () => {
-  const { user, isAuthenticated, isInitialized } = useAuthStore();
+  const { user, isAuthenticated, isInitialized, isLoading: authLoading } = useAuthStore();
   const { issues, isLoading, error, fetchIssues } = useIssuesStore();
   const { myCategories, fetchMyCategories } = useStewardStore();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
   const [assignedIssues, setAssignedIssues] = useState([]);
+  const [mounted, setMounted] = useState(false);
+
+  // Handle client-side mounting
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
-    if (isInitialized && !isAuthenticated) {
-      router.push('/login');
-      return;
-    }
-
-    if (isAuthenticated && user?.role !== 'STEWARD' && user?.role !== 'SUPER_ADMIN') {
+    // Only run redirect logic after component has mounted and auth is initialized
+    if (!mounted || !isInitialized || authLoading) return;
+    
+    if (!user || (user.role !== 'STEWARD' && user.role !== 'SUPER_ADMIN')) {
       router.push('/');
       return;
     }
 
-    if (isAuthenticated) {
+    if (user) {
       fetchIssues();
     }
-  }, [isInitialized, isAuthenticated, user, router, fetchIssues]);
+  }, [mounted, user, router, isInitialized, authLoading, fetchIssues]);
 
   useEffect(() => {
     if (issues && user) {
@@ -134,6 +138,15 @@ const StewardDashboardPage = () => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  // Show loading while mounting or auth is initializing
+  if (!mounted || !isInitialized || authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: colors.gradients.secondary }}>
+        <LoadingCard message="Loading dashboard..." />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen" style={{ background: colors.gradients.secondary }}>

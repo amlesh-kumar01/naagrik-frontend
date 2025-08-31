@@ -4,7 +4,6 @@ export const zoneAPI = {
   // Public zone endpoints (no auth required)
   getAvailableZones: () => api.get('/zones/public/available'),
   searchZones: (query) => api.get(`/zones/public/search?q=${encodeURIComponent(query)}`),
-  getCategories: () => api.get('/zones/categories'),
 
   // Admin zone management (requires admin token)
   getAllZones: () => api.get('/zones'),

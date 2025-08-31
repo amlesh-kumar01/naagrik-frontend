@@ -1,12 +1,10 @@
 import { create } from 'zustand';
 import { zoneAPI } from '../../lib/api/zoneApi';
-import { categoryAPI } from '../../lib/api/categoryApi';
 
 export const useZoneStore = create((set, get) => ({
   // State
   zones: [],
   availableZones: [], // Public zones for issue creation
-  categories: [],
   currentZone: null,
   zoneStats: null,
   zoneIssues: [],
@@ -20,6 +18,7 @@ export const useZoneStore = create((set, get) => ({
     try {
       const response = await zoneAPI.getAvailableZones();
       const zones = response.data?.zones || response.zones || [];
+      console.log("Fetched zones array: ", zones);
       set({ availableZones: zones, isLoading: false });
       return { success: true, zones };
     } catch (error) {
@@ -38,20 +37,6 @@ export const useZoneStore = create((set, get) => ({
       return { success: true, zones };
     } catch (error) {
       const errorMessage = error.message || 'Failed to search zones';
-      set({ error: errorMessage, isLoading: false });
-      return { success: false, error: errorMessage };
-    }
-  },
-
-  fetchCategories: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await zoneAPI.getCategories();
-      const categories = response.data?.categories || response.categories || [];
-      set({ categories, isLoading: false });
-      return { success: true, categories };
-    } catch (error) {
-      const errorMessage = error.message || 'Failed to fetch categories';
       set({ error: errorMessage, isLoading: false });
       return { success: false, error: errorMessage };
     }

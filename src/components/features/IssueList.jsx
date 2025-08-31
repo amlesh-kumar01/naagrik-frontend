@@ -40,6 +40,9 @@ const IssueList = ({
     pagination 
   } = useIssuesStore();
 
+  const { fetchAvailableZones } = useZoneStore();
+  const { fetchAllCategories } = useCategoryStore();
+
   const [filters, setFilters] = useState({
     search: '',
     category: category || 'all',
@@ -52,6 +55,35 @@ const IssueList = ({
   
   const [viewMode, setViewMode] = useState('list');
   const [localIssues, setLocalIssues] = useState([]);
+  const [allCategories, setAllCategories] = useState([]);
+  const [allZones, setAllZones] = useState([]);
+  const [isLoadingFilters, setIsLoadingFilters] = useState(true);
+
+  // Load filter options from stores
+  useEffect(() => {
+    const loadFilterOptions = async () => {
+      try {
+        const [categoriesResult, zonesResult] = await Promise.all([
+          fetchAllCategories(),
+          fetchAvailableZones()
+        ]);
+
+        if (categoriesResult.success) {
+          setAllCategories(categoriesResult.categories);
+        }
+        
+        if (zonesResult.success) {
+          setAllZones(zonesResult.zones);
+        }
+      } catch (error) {
+        console.error('Failed to load filter options:', error);
+      } finally {
+        setIsLoadingFilters(false);
+      }
+    };
+
+    loadFilterOptions();
+  }, [fetchAllCategories, fetchAvailableZones]);
 
   useEffect(() => {
     loadIssues();
@@ -186,8 +218,15 @@ const IssueList = ({
     updateIssue(issueId, updates);
   };
 
-  const categories = [...new Set(issues.map(issue => issue.category_name).filter(Boolean))];
-  const zones = [...new Set(issues.map(issue => issue.zone_name).filter(Boolean))];
+  // Use store-loaded data for filter options, fallback to derived data
+  const categories = allCategories.length > 0 
+    ? allCategories.map(cat => cat.name)
+    : [...new Set(issues.map(issue => issue.category_name).filter(Boolean))];
+  
+  const zones = allZones.length > 0 
+    ? allZones.map(zone => zone.area_name)
+    : [...new Set(issues.map(issue => issue.zone_name).filter(Boolean))];
+  
   const statuses = ['OPEN', 'ACKNOWLEDGED', 'IN_PROGRESS', 'RESOLVED'];
   const priorities = ['LOW', 'MEDIUM', 'HIGH'];
 

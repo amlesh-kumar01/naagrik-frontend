@@ -51,7 +51,6 @@ const AddIssueReportPage = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [zones, setZones] = useState([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [isLoadingZones, setIsLoadingZones] = useState(true);
   
@@ -63,7 +62,7 @@ const AddIssueReportPage = () => {
   const [mapZoom, setMapZoom] = useState(13);
   
   const { createIssue } = useIssuesStore();
-  const { fetchAvailableZones } = useZoneStore();
+  const { availableZones, fetchAvailableZones, isLoading: isZoneStoreLoading } = useZoneStore();
   const { fetchAllCategories } = useCategoryStore();
   const { getCurrentLocation } = useLocationService();
 
@@ -71,7 +70,7 @@ const AddIssueReportPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch categories
+        // Fetch categories using category store
         const categoriesResult = await fetchAllCategories();
         if (categoriesResult.success) {
           setCategories(categoriesResult.categories);
@@ -79,13 +78,8 @@ const AddIssueReportPage = () => {
           setErrors(prev => ({ ...prev, categories: categoriesResult.error || 'Failed to load categories' }));
         }
         
-        // Fetch zones
-        const zonesResult = await fetchAvailableZones();
-        if (zonesResult.success) {
-          setZones(zonesResult.zones);
-        } else {
-          setErrors(prev => ({ ...prev, zones: zonesResult.error || 'Failed to load zones' }));
-        }
+        // Fetch zones using zone store
+        await fetchAvailableZones();
       } catch (error) {
         console.error('Failed to fetch data:', error);
         setErrors(prev => ({ 
@@ -100,7 +94,7 @@ const AddIssueReportPage = () => {
 
     fetchData();
     getCurrentLocationHandler(); // Auto-get user location on load
-  }, []);
+  }, [fetchAllCategories, fetchAvailableZones]);
 
   const priorities = [
     { value: 'LOW', label: 'Low Priority', color: 'text-green-600', description: 'Minor issues that can wait' },
@@ -638,13 +632,13 @@ const AddIssueReportPage = () => {
                           name="categoryId"
                           value={formData.categoryId}
                           onChange={handleInputChange}
-                          className={`w-full border-2 rounded-lg px-4 py-3 bg-white transition-all duration-200 focus:ring-2 focus:ring-[#B2B0E8] ${
+                          className={`w-full border-2 rounded-lg px-4 py-3 bg-white text-gray-900 transition-all duration-200 focus:ring-2 focus:ring-[#B2B0E8] ${
                             errors.category ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#7A85C1]'
                           }`}
                         >
-                          <option value="">Select a category</option>
+                          <option value="" className="text-gray-500">Select a category</option>
                           {categories.map(category => (
-                            <option key={category.id} value={category.id}>{category.name}</option>
+                            <option key={category.id} value={category.id} className="text-gray-900">{category.name}</option>
                           ))}
                         </select>
                       )}
@@ -671,13 +665,13 @@ const AddIssueReportPage = () => {
                           name="zoneId"
                           value={formData.zoneId}
                           onChange={handleInputChange}
-                          className={`w-full border-2 rounded-lg px-4 py-3 bg-white transition-all duration-200 focus:ring-2 focus:ring-[#B2B0E8] ${
+                          className={`w-full border-2 rounded-lg px-4 py-3 bg-white text-gray-900 transition-all duration-200 focus:ring-2 focus:ring-[#B2B0E8] ${
                             errors.zone ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#7A85C1]'
                           }`}
                         >
-                          <option value="">Select a zone</option>
-                          {zones.map(zone => (
-                            <option key={zone.id} value={zone.id}>{zone.name}</option>
+                          <option value="" className="text-gray-500">Select a zone</option>
+                          {availableZones.map(zone => (
+                            <option key={zone.id} value={zone.id} className="text-gray-900">{zone.area_name}</option>
                           ))}
                         </select>
                       )}

@@ -16,6 +16,7 @@ import {
   Plus,
   Edit3,
   Trash2,
+  Users,
   BarChart3,
   AlertTriangle,
   CheckCircle,

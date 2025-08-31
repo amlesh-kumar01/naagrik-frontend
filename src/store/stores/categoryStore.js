@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { issueAPI } from '../../lib/api/issueApi';
 import { categoryAPI } from '../../lib/api/categoryApi';
 
 // Category Store - for managing issue categories
@@ -21,7 +22,7 @@ export const useCategoryStore = create((set, get) => ({
   fetchAllCategories: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await categoryAPI.getAllCategories();
+      const response = await issueAPI.getCategories();
       const categories = response.data?.categories || response.categories || [];
       set({ categories, isLoading: false });
       return { success: true, categories };
@@ -160,7 +161,7 @@ export const useCategoryStore = create((set, get) => ({
   fetchCategoriesWithStats: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await categoryAPI.getCategoriesWithStats();
+      const response = await issueAPI.getCategoriesWithStats();
       const categoriesWithStats = response.data?.categories || response.categories || [];
       
       set({ 

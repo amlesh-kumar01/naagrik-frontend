@@ -23,7 +23,8 @@ import {
   Award,
   Shield,
   ChevronDown,
-  BarChart3
+  BarChart3,
+  FolderOpen
 } from 'lucide-react';
 
 const Header = () => {
@@ -76,6 +77,7 @@ const Header = () => {
     { name: 'Users', href: '/admin/users', icon: Users },
     { name: 'Stewards', href: '/admin/stewards', icon: Shield },
     { name: 'Zones', href: '/admin/zones', icon: MapPin },
+    { name: 'Categories', href: '/admin/categories', icon: FolderOpen },
     { name: 'Badges', href: '/admin/badges', icon: Award },
     { name: 'Issues', href: '/admin/issues', icon: AlertTriangle }
   ];

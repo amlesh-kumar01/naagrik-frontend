@@ -138,36 +138,6 @@ const Footer = () => {
             </div>
           </div>
         </div>
-
-        {/* App Download Section */}
-        <div className="mt-8 pt-8 border-t border-white/20">
-          <div className="text-center">
-            <h3 className="text-lg font-semibold mb-4 text-white">Get the App</h3>
-            <p className="text-white/80 mb-6">
-              Download our mobile app to report issues on the go and stay connected with your community.
-            </p>
-            <div className="flex justify-center space-x-4">
-              <a
-                href="#"
-                className="inline-flex items-center px-6 py-3 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all duration-200 shadow-lg"
-              >
-                <div className="text-left">
-                  <div className="text-xs text-white/80">Download on the</div>
-                  <div className="text-sm font-semibold text-white">App Store</div>
-                </div>
-              </a>
-              <a
-                href="#"
-                className="inline-flex items-center px-6 py-3 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all duration-200 shadow-lg"
-              >
-                <div className="text-left">
-                  <div className="text-xs text-white/80">Get it on</div>
-                  <div className="text-sm font-semibold text-white">Google Play</div>
-                </div>
-              </a>
-            </div>
-          </div>
-        </div>
       </div>
     </footer>
   );

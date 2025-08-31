@@ -48,21 +48,19 @@ function IssuePageContent({ params }) {
   const { id } = use(params);
   
   return (
-    <ErrorBoundary
-      FallbackComponent={ErrorFallback}
-      onReset={() => window.location.reload()}
-    >
-      <Suspense fallback={<LoadingCard message="Loading issue details..." />}>
-        <IssueDetailPage issueId={id} />
-      </Suspense>
-    </ErrorBoundary>
+    <IssueDetailPage issueId={id} />
   );
 }
 
 export default function IssuePage({ params }) {
   return (
-    <Suspense fallback={<LoadingCard message="Loading..." />}>
-      <IssuePageContent params={params} />
-    </Suspense>
+    <ErrorBoundary
+      FallbackComponent={ErrorFallback}
+      onReset={() => window.location.reload()}
+    >
+      <Suspense fallback={<LoadingCard message="Loading issue details..." />}>
+        <IssuePageContent params={params} />
+      </Suspense>
+    </ErrorBoundary>
   );
 }

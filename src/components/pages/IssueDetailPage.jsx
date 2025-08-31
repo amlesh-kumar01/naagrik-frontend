@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useIssuesStore } from '@/store';
 import { useAuthStore } from '@/store';
 import { useCommentsStore } from '@/store';
+import { stewardAPI } from '@/lib/api/stewardApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -52,6 +53,8 @@ const IssueDetailPage = ({ issueId }) => {
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [showAllMedia, setShowAllMedia] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [canManageIssue, setCanManageIssue] = useState(false);
+  const [checkingPermissions, setCheckingPermissions] = useState(false);
 
   useEffect(() => {
     if (issueId) {
@@ -59,6 +62,43 @@ const IssueDetailPage = ({ issueId }) => {
       loadAllIssues();
     }
   }, [issueId]);
+
+  useEffect(() => {
+    // Check permissions only when user role changes or issue is loaded
+    if (issueId && user && (user.role === 'STEWARD' || user.role === 'SUPER_ADMIN')) {
+      checkIssueAssignment();
+    } else if (user && user.role !== 'STEWARD' && user.role !== 'SUPER_ADMIN') {
+      setCanManageIssue(false);
+    }
+  }, [issueId, user?.role]);
+
+  const checkIssueAssignment = async () => {
+    if (!issueId || !user || checkingPermissions) return;
+    
+    setCheckingPermissions(true);
+    try {
+      // Super admin can always manage
+      if (user.role === 'SUPER_ADMIN') {
+        setCanManageIssue(true);
+        return;
+      }
+      
+      // For stewards, check via the assignment API
+      if (user.role === 'STEWARD') {
+        const response = await stewardAPI.checkIssueAssignment(issueId);
+        // Can manage if issue is assigned to current steward or if they can assign it
+        setCanManageIssue(
+          response.data?.isCurrentSteward || 
+          (!response.data?.isAssigned && response.success)
+        );
+      }
+    } catch (error) {
+      console.error('Error checking issue assignment:', error);
+      setCanManageIssue(false);
+    } finally {
+      setCheckingPermissions(false);
+    }
+  };
 
   const loadIssue = async () => {
     try {
@@ -123,6 +163,19 @@ const IssueDetailPage = ({ issueId }) => {
       default:
         return <AlertTriangle className="h-4 w-4" />;
     }
+  };
+
+  // Enhanced permission check for stewards with assignments
+  const canUserManageIssue = () => {
+    if (!user || !currentIssue) return false;
+    
+    // Super admin can manage all issues
+    if (user.role === 'SUPER_ADMIN') return true;
+    
+    // For stewards, use the API-checked permission
+    if (user.role === 'STEWARD') return canManageIssue;
+    
+    return false;
   };
 
   const getStatusColor = (status) => {
@@ -399,7 +452,7 @@ const IssueDetailPage = ({ issueId }) => {
             </Card>
 
             {/* Management Actions - Only for Stewards/Admins */}
-            {user && canManageIssue(currentIssue, user) && (
+            {user && canUserManageIssue() && !checkingPermissions && (
               <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle className="text-[#1A2A80] text-lg">Manage Issue</CardTitle>
@@ -480,18 +533,18 @@ const IssueDetailPage = ({ issueId }) => {
                     height="250px"
                     enableLocationSelection={false}
                     showCurrentLocation={true}
-                    issues={issues.filter(issue => issue.location_lat && issue.location_lng).map(issue => ({
-                      id: issue.id,
-                      title: issue.title,
-                      description: issue.description,
-                      latitude: parseFloat(issue.location_lat),
-                      longitude: parseFloat(issue.location_lng),
-                      status: issue.status,
-                      priority: issue.priority || 'MEDIUM',
-                      category: issue.category_name || 'General',
-                      address: issue.address,
-                      created_at: issue.created_at
-                    }))}
+                    issues={[{
+                      id: currentIssue.id,
+                      title: currentIssue.title,
+                      description: currentIssue.description,
+                      location_lat: parseFloat(currentIssue.location_lat),
+                      location_lng: parseFloat(currentIssue.location_lng),
+                      status: currentIssue.status,
+                      priority: currentIssue.priority || 'MEDIUM',
+                      category: currentIssue.category_name || 'General',
+                      address: currentIssue.address,
+                      created_at: currentIssue.created_at
+                    }]}
                     onIssueClick={(issue) => {
                       if (issue.id !== currentIssue.id) {
                         router.push(`/issues/${issue.id}`);

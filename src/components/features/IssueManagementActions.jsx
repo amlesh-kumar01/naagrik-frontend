@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuthStore, useIssuesStore } from '@/store';
+import { stewardAPI } from '@/lib/api/stewardApi';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ConfirmationModal from '@/components/ui/confirmation-modal';
@@ -62,6 +63,36 @@ const IssueManagementActions = ({
   const [newStatus, setNewStatus] = useState('');
   const [statusReason, setStatusReason] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [canManageThisIssue, setCanManageThisIssue] = useState(false);
+
+  // Check if current user can manage this specific issue
+  useEffect(() => {
+    const checkManagePermission = async () => {
+      if (!user || !issue) return;
+      
+      // Super admin can always manage
+      if (user.role === 'SUPER_ADMIN') {
+        setCanManageThisIssue(true);
+        return;
+      }
+      
+      // For stewards, check via assignment API
+      if (user.role === 'STEWARD') {
+        try {
+          const response = await stewardAPI.checkIssueAssignment(issue.id);
+          setCanManageThisIssue(
+            response.data?.isCurrentSteward || 
+            (!response.data?.isAssigned && response.success)
+          );
+        } catch (error) {
+          console.error('Error checking issue assignment:', error);
+          setCanManageThisIssue(false);
+        }
+      }
+    };
+
+    checkManagePermission();
+  }, [user?.role, issue?.id]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -86,13 +117,14 @@ const IssueManagementActions = ({
     };
   }, [isDropdownOpen]);
 
-  // Role-based permissions (CITIZEN, STEWARD, SUPER_ADMIN only)
+  // Role-based permissions with API-based steward checking
   const isCitizen = user?.role === 'CITIZEN';
   const isSteward = user?.role === 'STEWARD';
   const isSuperAdmin = user?.role === 'SUPER_ADMIN';
   const isIssueOwner = user?.id === issue.user_id;
   
-  const canChangeStatus = isSteward || isSuperAdmin;
+  // Use API-checked permission for stewards
+  const canChangeStatus = canManageThisIssue;
   const canArchive = canChangeStatus && issue.status === 'RESOLVED';
   const canDelete = isSuperAdmin || isIssueOwner;
   const canMarkDuplicate = canChangeStatus;

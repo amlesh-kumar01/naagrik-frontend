@@ -43,6 +43,13 @@ const StewardDashboardPage = () => {
   // Handle client-side mounting
   useEffect(() => {
     setMounted(true);
+    
+    // Check URL params for tab
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+    if (tab) {
+      setActiveTab(tab);
+    }
   }, []);
 
   useEffect(() => {
@@ -64,13 +71,21 @@ const StewardDashboardPage = () => {
     try {
       setStatsLoading(true);
       
+      console.log('Fetching steward data...');
+      
       // Fetch steward stats
       const statsResponse = await stewardAPI.getMyStewardStats();
+      console.log('Stats response:', statsResponse.data);
       setStewardStats(statsResponse.data);
       
       // Fetch assigned issues
       const issuesResponse = await stewardAPI.getMyAssignedIssues();
-      setAssignedIssues(issuesResponse.data?.issues || []);
+      console.log('Issues response:', issuesResponse.data);
+      console.log('Issues count:', issuesResponse.data?.issues?.length || 0);
+      
+      const issues = issuesResponse.data?.issues || [];
+      console.log('Setting assigned issues:', issues);
+      setAssignedIssues(issues);
       
     } catch (error) {
       console.error('Failed to fetch steward data:', error);
@@ -118,8 +133,11 @@ const StewardDashboardPage = () => {
   ];
 
   const recentIssues = assignedIssues
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .sort((a, b) => new Date(b.createdAt || b.created_at) - new Date(a.createdAt || a.created_at))
     .slice(0, 5);
+
+  console.log('Assigned issues state:', assignedIssues);
+  console.log('Recent issues:', recentIssues);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -193,8 +211,37 @@ const StewardDashboardPage = () => {
           </Alert>
         )}
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Tab Navigation */}
+        <div className="border-b border-gray-200 mb-8">
+          <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'overview'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('issues')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'issues'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              My Issues ({assignedIssues.length})
+            </button>
+          </nav>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'overview' && (
+          <>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             return (
@@ -226,9 +273,9 @@ const StewardDashboardPage = () => {
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg font-semibold">
-                    Assigned Issues
+                    Assigned Issues ({assignedIssues.length})
                   </CardTitle>
-                  <Button variant="outline" size="sm" onClick={() => router.push('/issues')}>
+                  <Button variant="outline" size="sm" onClick={() => router.push('/steward/dashboard?tab=issues')}>
                     View All
                     <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
@@ -266,7 +313,7 @@ const StewardDashboardPage = () => {
                           </div>
                           <div className="flex items-center">
                             <Calendar className="h-3 w-3 mr-1" />
-                            {new Date(issue.createdAt).toLocaleDateString()}
+                            {new Date(issue.createdAt || issue.created_at).toLocaleDateString()}
                           </div>
                         </div>
                       </div>
@@ -363,6 +410,80 @@ const StewardDashboardPage = () => {
             </Card>
           </div>
         </div>
+        </>
+        )}
+
+        {/* Issues Tab */}
+        {activeTab === 'issues' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">My Assigned Issues</h2>
+              <div className="text-sm text-gray-500">
+                Total: {assignedIssues.length} issues
+              </div>
+            </div>
+            
+            {assignedIssues.length > 0 ? (
+              <div className="grid gap-4">
+                {assignedIssues.map((issue) => (
+                  <Card 
+                    key={issue.id} 
+                    className="border-0 shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                    onClick={() => router.push(`/issues/${issue.id}`)}
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900 mb-2">
+                            {issue.title}
+                          </h3>
+                          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                            {issue.description}
+                          </p>
+                          <div className="flex items-center text-sm text-gray-500 space-x-4">
+                            <div className="flex items-center">
+                              <MapPin className="h-4 w-4 mr-1" />
+                              {issue.address || 'Location not specified'}
+                            </div>
+                            <div className="flex items-center">
+                              <Calendar className="h-4 w-4 mr-1" />
+                              {new Date(issue.created_at || issue.createdAt).toLocaleDateString()}
+                            </div>
+                            <div className="flex items-center">
+                              <User className="h-4 w-4 mr-1" />
+                              {issue.category_name || 'General'}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-col space-y-2 ml-4">
+                          <Badge className={getPriorityColor(issue.priority)} variant="secondary">
+                            {issue.priority || 'medium'}
+                          </Badge>
+                          <Badge className={getStatusColor(issue.status)} variant="secondary">
+                            {issue.status?.replace('_', ' ') || 'pending'}
+                          </Badge>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="border-0 shadow-md">
+                <CardContent className="p-12 text-center">
+                  <AlertTriangle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Assigned Issues</h3>
+                  <p className="text-gray-600 mb-4">
+                    You don't have any issues assigned to your zone yet.
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Issues from your assigned zone will appear here when they are reported.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -66,6 +66,7 @@ export const stewardAPI = {
   },
 
   // Steward issue management
+  checkIssueAssignment: (issueId) => api.post(`/stewards/issues/${issueId}/assign`),
   addStewardNote: (issueId, noteData) => api.post(`/stewards/issues/${issueId}/notes`, {
     note: noteData.note,
     isInternal: noteData.isInternal || false,

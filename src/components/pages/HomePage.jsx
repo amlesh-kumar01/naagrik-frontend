@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useAuthStore } from '../../store';
+import { useAuthStore, useIssuesStore } from '../../store';
 import { useDashboardStore } from '../../store';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { LoadingCard } from '../ui/loading';
 import { colors } from '../../lib/theme';
+import { formatRelativeTime } from '../../lib/utils';
 import { 
   AlertTriangle, 
   Users, 
@@ -27,12 +28,43 @@ import {
 
 const HomePage = () => {
   const { user, isAuthenticated } = useAuthStore();
+  const { issues, isLoading: issuesLoading, fetchIssues } = useIssuesStore();
   const { publicStats, isLoading: statsLoading, fetchPublicStats } = useDashboardStore();
   const [stats, setStats] = useState(null);
+  const [recentIssues, setRecentIssues] = useState([]);
 
   useEffect(() => {
     fetchStats();
-  }, []);
+    if (isAuthenticated) {
+      fetchRecentIssues();
+    }
+  }, [isAuthenticated]);
+
+  const fetchRecentIssues = async () => {
+    try {
+      await fetchIssues({ limit: 3, sortBy: 'createdAt', sortOrder: 'desc' });
+    } catch (error) {
+      console.error('Error loading recent issues:', error);
+    }
+  };
+
+  // Update recent issues when store issues change
+  useEffect(() => {
+    if (issues && issues.length > 0) {
+      // Get the 3 most recent issues from the store
+      const recent = issues
+        .slice(0, 3)
+        .map(issue => ({
+          id: issue.id,
+          title: issue.title,
+          status: issue.status,
+          category: issue.category_name || 'General',
+          location: issue.address || `${issue.location_lat}, ${issue.location_lng}`,
+          timeAgo: formatRelativeTime(issue.created_at)
+        }));
+      setRecentIssues(recent);
+    }
+  }, [issues]);
 
   const fetchStats = async () => {
     const result = await fetchPublicStats();
@@ -116,33 +148,6 @@ const HomePage = () => {
       description: 'Quick access for emergency and urgent situations',
       href: '/emergency',
       color: 'bg-orange-50 text-orange-600',
-    },
-  ];
-
-  const recentIssues = [
-    {
-      id: 1,
-      title: 'Pothole on Main Street',
-      status: 'IN_PROGRESS',
-      category: 'Road Infrastructure',
-      location: 'Main St & 5th Ave',
-      timeAgo: '2 hours ago',
-    },
-    {
-      id: 2,
-      title: 'Broken Street Light',
-      status: 'ACKNOWLEDGED',
-      category: 'Street Lighting',
-      location: 'Park Avenue',
-      timeAgo: '4 hours ago',
-    },
-    {
-      id: 3,
-      title: 'Graffiti on Public Building',
-      status: 'RESOLVED',
-      category: 'Vandalism',
-      location: 'City Hall',
-      timeAgo: '1 day ago',
     },
   ];
 
@@ -300,45 +305,63 @@ const HomePage = () => {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {recentIssues.map((issue) => (
-                <Card key={issue.id} className="hover:shadow-xl transition-all duration-300 transform hover:scale-105 bg-white/95 backdrop-blur-sm border-0 shadow-lg">
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg line-clamp-2 text-[#1A2A80]">{issue.title}</CardTitle>
-                      <Badge className={getStatusColor(issue.status)}>
-                        {issue.status.replace('_', ' ')}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2 text-sm text-gray-600">
-                      <div className="flex items-center">
-                        <AlertTriangle className="h-4 w-4 mr-2 text-[#7A85C1]" />
-                        {issue.category}
+            {issuesLoading ? (
+              <div className="text-center">
+                <LoadingCard message="Loading recent issues..." />
+              </div>
+            ) : recentIssues.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {recentIssues.map((issue) => (
+                  <Card key={issue.id} className="hover:shadow-xl transition-all duration-300 transform hover:scale-105 bg-white/95 backdrop-blur-sm border-0 shadow-lg">
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="text-lg line-clamp-2 text-[#1A2A80]">{issue.title}</CardTitle>
+                        <Badge className={getStatusColor(issue.status)}>
+                          {issue.status.replace('_', ' ')}
+                        </Badge>
                       </div>
-                      <div className="flex items-center">
-                        <MapPin className="h-4 w-4 mr-2 text-[#7A85C1]" />
-                        {issue.location}
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2 text-sm text-gray-600">
+                        <div className="flex items-center">
+                          <AlertTriangle className="h-4 w-4 mr-2 text-[#7A85C1]" />
+                          {issue.category}
+                        </div>
+                        <div className="flex items-center">
+                          <MapPin className="h-4 w-4 mr-2 text-[#7A85C1]" />
+                          {issue.location}
+                        </div>
+                        <div className="flex items-center">
+                          <Clock className="h-4 w-4 mr-2 text-[#7A85C1]" />
+                          {issue.timeAgo}
+                        </div>
                       </div>
-                      <div className="flex items-center">
-                        <Clock className="h-4 w-4 mr-2 text-[#7A85C1]" />
-                        {issue.timeAgo}
-                      </div>
-                    </div>
-                    <Link href={`/issues/${issue.id}`}>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full mt-4 border-[#7A85C1] text-[#3B38A0] hover:bg-[#7A85C1] hover:text-white transition-all duration-200" 
-                      >
-                        View Details
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      <Link href={`/issues/${issue.id}`}>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full mt-4 border-[#7A85C1] text-[#3B38A0] hover:bg-[#7A85C1] hover:text-white transition-all duration-200" 
+                        >
+                          View Details
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <AlertTriangle className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">No Recent Issues</h3>
+                <p className="text-gray-500 mb-4">Be the first to report an issue in your community!</p>
+                <Link href="/report/add">
+                  <Button variant="primary">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Report an Issue
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         </section>
       )}

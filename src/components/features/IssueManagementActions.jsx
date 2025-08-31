@@ -57,7 +57,6 @@ const IssueManagementActions = ({
   
   const [archiveReason, setArchiveReason] = useState('');
   const [archiveType, setArchiveType] = useState('RESOLVED_EXTERNALLY');
-  const [deleteReason, setDeleteReason] = useState('');
   const [duplicateIssueId, setDuplicateIssueId] = useState('');
   const [duplicateReason, setDuplicateReason] = useState('');
   const [newStatus, setNewStatus] = useState('');
@@ -163,7 +162,6 @@ const IssueManagementActions = ({
     setIsLoading(true);
     try {
       const result = await deleteIssue(issue.id, {
-        reason: deleteReason.trim(),
         deletedBy: user.id,
         notes: `Issue permanently deleted by ${isSuperAdmin ? 'Super Admin' : 'Issue Owner'}: ${user.name}`
       });
@@ -176,7 +174,6 @@ const IssueManagementActions = ({
       );
       
       setShowDeleteModal(false);
-      setDeleteReason('');
       onIssueRemoved?.(issue.id);
     } catch (error) {
       toast.error(error.message || 'Failed to delete issue');
@@ -518,7 +515,6 @@ const IssueManagementActions = ({
         isOpen={showDeleteModal}
         onClose={() => {
           setShowDeleteModal(false);
-          setDeleteReason('');
         }}
         onConfirm={handleDelete}
         title="Hard Delete Issue"
@@ -527,13 +523,6 @@ const IssueManagementActions = ({
         variant="danger"
         confirmText="Hard Delete"
         isLoading={isLoading}
-        showTextInput={true}
-        textInputValue={deleteReason}
-        onTextInputChange={setDeleteReason}
-        textInputLabel="Reason for Deletion"
-        textInputPlaceholder="Provide a detailed justification for permanent deletion..."
-        textInputRequired={true}
-        textInputMinLength={20}
         warningItems={[
           'Issue record and description',
           'All comments and replies',
@@ -547,7 +536,6 @@ const IssueManagementActions = ({
           isSuperAdmin 
             ? 'You can delete any issue as a Super Administrator.' 
             : 'You can delete your own issues as the issue owner.',
-          'This action requires detailed justification.',
           'All associated data will be permanently removed from our servers.'
         ]}
       />

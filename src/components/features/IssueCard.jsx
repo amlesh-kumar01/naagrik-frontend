@@ -107,6 +107,16 @@ const IssueCard = ({
                   <p className="text-sm text-gray-600 mt-1 line-clamp-2 leading-relaxed">
                     {issue.description}
                   </p>
+                  
+                  {/* Reporter Info */}
+                  <div className="flex items-center space-x-1 mt-3 p-2 bg-gray-50 rounded-md">
+                    <div className="flex items-center space-x-1">
+                      <span className="text-xs text-gray-600">Reported by</span>
+                      <span className="text-xs font-medium text-gray-900">
+                        {issue.user_name || 'Anonymous'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 <div className="flex items-center space-x-2 ml-3">
                   <Badge 
@@ -262,13 +272,8 @@ const IssueCard = ({
           <div className="flex items-center justify-between pt-3 border-t border-gray-100">
             {/* User Info */}
             <div className="flex items-center space-x-2">
-              <Avatar className="h-7 w-7">
-                <AvatarImage src={issue.user_avatar} alt={issue.user_name} />
-                <AvatarFallback className="bg-[#1A2A80] text-white text-xs">
-                  {issue.user_name?.charAt(0)?.toUpperCase() || 'U'}
-                </AvatarFallback>
-              </Avatar>
               <div>
+                <p className="text-xs text-gray-500">Reported by</p>
                 <p className="text-sm font-medium text-gray-900">
                   {issue.user_name || 'Anonymous'}
                 </p>

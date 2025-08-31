@@ -49,7 +49,7 @@ const IssueList = ({
     sortOrder: 'desc',
   });
   
-  const [viewMode, setViewMode] = useState('grid');
+  const [viewMode, setViewMode] = useState('list');
   const [localIssues, setLocalIssues] = useState([]);
 
   useEffect(() => {

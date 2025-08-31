@@ -46,6 +46,11 @@ export const issueAPI = {
   deleteVote: (issueId) => api.delete(`/issues/${issueId}/vote`), // Dedicated delete vote function
   getUserVoteStatus: (issueId) => api.get(`/issues/${issueId}/vote-status`),
   getCategories: () => api.get('/issues/categories'),
+  
+  // Hard delete issue (permanent deletion)
+  hardDeleteIssue: (issueId) => api.delete(`/issues/${issueId}/hard-delete`),
+  
+  // Soft delete (legacy - for backward compatibility)
   deleteIssue: (issueId) => api.delete(`/issues/${issueId}`),
   
   // Archive issue (soft delete for resolved issues)

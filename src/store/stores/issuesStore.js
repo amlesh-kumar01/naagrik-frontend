@@ -298,11 +298,11 @@ export const useIssuesStore = create((set, get) => ({
     }
   },
 
-  // Delete issue (hard delete - admin only)
-  deleteIssue: async (issueId) => {
+  // Hard delete issue (permanent deletion - SUPER_ADMIN only)
+  deleteIssue: async (issueId, deleteData = {}) => {
     set({ isLoading: true, error: null });
     try {
-      await issueAPI.deleteIssue(issueId);
+      const response = await issueAPI.hardDeleteIssue(issueId);
       
       // Remove issue from the list
       set(state => ({
@@ -311,13 +311,21 @@ export const useIssuesStore = create((set, get) => ({
         isLoading: false
       }));
       
-      return true;
+      // Return deletion details for confirmation
+      return {
+        success: true,
+        deletedData: response.data?.deletedData || {},
+        message: response.data?.message || 'Issue permanently deleted'
+      };
     } catch (error) {
+      const errorMessage = error.response?.data?.error?.message || 
+                          error.response?.data?.message || 
+                          'Failed to delete issue';
       set({ 
         isLoading: false, 
-        error: error.response?.data?.error?.message || 'Failed to delete issue'
+        error: errorMessage
       });
-      throw error;
+      throw new Error(errorMessage);
     }
   },
 

@@ -169,3 +169,23 @@ export const slugify = (text) => {
     .replace(/^-+/, '')
     .replace(/-+$/, '');
 };
+
+// Hard delete utilities
+export const formatDeletionSummary = (deletedData) => {
+  if (!deletedData) return 'Issue permanently deleted';
+  
+  const parts = [];
+  const mediaCount = deletedData.mediaFiles || 0;
+  const cleanupSuccess = deletedData.cleanupCompleted;
+  
+  if (mediaCount > 0) {
+    parts.push(`${mediaCount} media file${mediaCount !== 1 ? 's' : ''} removed from cloud storage`);
+  }
+  
+  if (cleanupSuccess) {
+    parts.push('all related data cleaned up');
+  }
+  
+  const summary = parts.length > 0 ? parts.join(', ') : 'all data removed';
+  return `Issue permanently deleted - ${summary}`;
+};

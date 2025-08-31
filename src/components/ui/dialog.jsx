@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '../../lib/utils';
 
 const Dialog = ({ open, onOpenChange, children }) => {
@@ -16,14 +17,22 @@ const Dialog = ({ open, onOpenChange, children }) => {
 
   if (!open) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="fixed inset-0 bg-white/80 backdrop-blur-sm"
-        onClick={() => onOpenChange?.(false)}
-      />
-      <div className="relative z-50">{children}</div>
-    </div>
+  // Use portal to render modal at document body level for true screen centering
+  return createPortal(
+    <div 
+      className="modal-overlay"
+      onClick={(e) => {
+        // Only close if clicking the overlay itself, not the modal content
+        if (e.target === e.currentTarget) {
+          onOpenChange?.(false);
+        }
+      }}
+    >
+      <div className="modal-content w-full max-w-md sm:max-w-lg">
+        {children}
+      </div>
+    </div>,
+    document.body
   );
 };
 
@@ -31,9 +40,19 @@ const DialogContent = React.forwardRef(({ className, children, ...props }, ref) 
   <div
     ref={ref}
     className={cn(
-      'relative bg-white p-6 shadow-2xl border border-gray-200 duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg max-w-lg w-full mx-4',
+      'relative bg-white rounded-xl shadow-xl border border-gray-100',
+      'w-full',
+      'transform transition-all duration-300 ease-out',
+      'animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-4',
+      'p-6 overflow-hidden',
+      'ring-1 ring-black/5',
+      'pointer-events-auto', // Ensure content is clickable
       className
     )}
+    style={{
+      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)'
+    }}
+    onClick={(e) => e.stopPropagation()} // Prevent backdrop click when clicking modal content
     {...props}
   >
     {children}

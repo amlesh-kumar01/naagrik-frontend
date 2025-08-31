@@ -296,3 +296,35 @@ button:disabled, .button-component:disabled {
   box-shadow: none !important;
   cursor: not-allowed;
 }
+
+/* Professional Modal Centering */
+.modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 9999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1rem !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(0.5px) !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.modal-content {
+  position: relative !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  margin: auto !important;
+  transform: translateZ(0) !important; /* Force hardware acceleration */
+  pointer-events: auto !important; /* Ensure modal content is clickable */
+}
+
+@media (max-width: 640px) {
+  .modal-overlay {
+    padding: 0.5rem !important;
+  }
+}

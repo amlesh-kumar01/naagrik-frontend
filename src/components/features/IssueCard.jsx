@@ -82,10 +82,10 @@ const IssueCard = ({
           <div className="flex space-x-4">
             {/* Thumbnail */}
             <div className="flex-shrink-0">
-              {issue.media && issue.media.length > 0 && issue.media[0].url ? (
+              {issue.has_media && issue.thumbnail_url ? (
                 <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 border">
                   <img
-                    src={issue.media[0].url}
+                    src={issue.thumbnail_url}
                     alt={issue.title}
                     className="w-full h-full object-cover"
                   />
@@ -113,7 +113,7 @@ const IssueCard = ({
                     variant="outline" 
                     className={`text-xs px-2 py-1 ${getStatusColor(issue.status)}`}
                   >
-                    {issue.status}
+                    {issue.status.replace('_', ' ')}
                   </Badge>
                 </div>
               </div>
@@ -154,7 +154,7 @@ const IssueCard = ({
                   {/* Comments Count */}
                   <div className="flex items-center text-gray-500">
                     <MessageCircle className="h-4 w-4 mr-1" />
-                    <span className="font-medium">{issue.comments_count || 0}</span>
+                    <span className="font-medium">{issue.comment_count || 0}</span>
                   </div>
                   
                   <span className="text-gray-400 text-xs">{formatRelativeTime(issue.created_at)}</span>
@@ -193,11 +193,11 @@ const IssueCard = ({
               >
                 <div className="flex items-center space-x-1">
                   {getStatusIcon(issue.status)}
-                  <span>{issue.status}</span>
+                  <span>{issue.status.replace('_', ' ')}</span>
                 </div>
               </Badge>
-              <Badge className={`text-xs px-2 py-1 ${getPriorityColor(issue.priority)}`}>
-                {issue.priority}
+              <Badge className="text-xs px-2 py-1 bg-blue-50 text-blue-700 border-blue-200">
+                {issue.category_name || 'General'}
               </Badge>
             </div>
             
@@ -212,19 +212,19 @@ const IssueCard = ({
         </div>
 
         {/* Media Thumbnail */}
-        {issue.media && issue.media.length > 0 && issue.media[0].url && (
+        {issue.has_media && issue.thumbnail_url && (
           <div className="mb-4">
             <div className="relative rounded-lg overflow-hidden bg-gray-100 group h-32">
               <img
-                src={issue.media[0].url}
+                src={issue.thumbnail_url}
                 alt={issue.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
               />
               {/* Media count overlay */}
-              {issue.media.length > 1 && (
+              {parseInt(issue.media_count) > 1 && (
                 <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
                   <Camera className="h-3 w-3 inline mr-1" />
-                  {issue.media.length}
+                  {issue.media_count}
                 </div>
               )}
             </div>
@@ -242,7 +242,7 @@ const IssueCard = ({
         {/* Category */}
         <div className="mb-4">
           <Badge variant="secondary" className="text-xs px-3 py-1 bg-blue-50 text-blue-700 border-blue-200">
-            {issue.category}
+            {issue.category_name || 'General'}
           </Badge>
         </div>
 
@@ -251,14 +251,14 @@ const IssueCard = ({
           {/* User Info */}
           <div className="flex items-center space-x-3">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={issue.reporter?.avatar} alt={issue.reporter?.name} />
+              <AvatarImage src={issue.user_avatar} alt={issue.user_name} />
               <AvatarFallback className="bg-[#1A2A80] text-white text-xs">
-                {issue.reporter?.name?.charAt(0)?.toUpperCase() || 'U'}
+                {issue.user_name?.charAt(0)?.toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
             <div>
               <p className="text-sm font-medium text-gray-900">
-                {issue.reporter?.name || 'Anonymous'}
+                {issue.user_name || 'Anonymous'}
               </p>
               <p className="text-xs text-gray-500">
                 {formatRelativeTime(issue.created_at)}
@@ -298,7 +298,7 @@ const IssueCard = ({
                 className="flex items-center space-x-1 text-gray-600 hover:text-[#1A2A80] hover:bg-blue-50"
               >
                 <MessageCircle className="h-4 w-4" />
-                <span className="font-medium">{issue.comments_count || 0}</span>
+                <span className="font-medium">{issue.comment_count || 0}</span>
               </Button>
             </Link>
           </div>

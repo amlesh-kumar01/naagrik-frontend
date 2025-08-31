@@ -4,28 +4,37 @@ import { useState } from 'react';
 import { useAuthStore, useIssuesStore } from '@/store';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
+import ConfirmationModal from '@/components/ui/confirmation-modal';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  canManageIssue, 
-  canArchiveIssue, 
-  canDeleteIssues,
-  canMarkAsDuplicate,
-  validateArchiveReason,
-  getAvailableStatusTransitions
-} from '@/lib/utils/issuePermissions';
 import { 
   Archive, 
   Trash2, 
   Copy, 
   AlertTriangle, 
   CheckCircle,
-  Clock,
+  Settings,
   MoreHorizontal,
-  Settings
+  Eye,
+  PlayCircle,
+  XCircle
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+
+const STATUS_CONFIG = {
+  'OPEN': { color: 'blue', icon: Eye, label: 'Open' },
+  'ACKNOWLEDGED': { color: 'yellow', icon: CheckCircle, label: 'Acknowledged' },
+  'IN_PROGRESS': { color: 'orange', icon: PlayCircle, label: 'In Progress' },
+  'RESOLVED': { color: 'green', icon: CheckCircle, label: 'Resolved' },
+  'CLOSED': { color: 'gray', icon: XCircle, label: 'Closed' },
+  'DUPLICATE': { color: 'purple', icon: Copy, label: 'Duplicate' }
+};
+
+const ARCHIVE_TYPES = [
+  { value: 'RESOLVED_EXTERNALLY', label: 'Resolved Externally' },
+  { value: 'INVALID', label: 'Invalid Report' },
+  { value: 'SPAM', label: 'Spam Report' },
+  { value: 'DUPLICATE', label: 'Duplicate Issue' }
+];
 
 const IssueManagementActions = ({ 
   issue, 
@@ -37,10 +46,10 @@ const IssueManagementActions = ({
   const { user } = useAuthStore();
   const { archiveIssue, deleteIssue, markAsDuplicate, updateIssueStatus } = useIssuesStore();
   
-  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
-  const [showStatusDialog, setShowStatusDialog] = useState(false);
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
   
   const [archiveReason, setArchiveReason] = useState('');
   const [archiveType, setArchiveType] = useState('RESOLVED_EXTERNALLY');
@@ -51,25 +60,59 @@ const IssueManagementActions = ({
   const [statusReason, setStatusReason] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Check permissions
-  const canManage = canManageIssue(issue, user);
-  const canArchive = canArchiveIssue(issue) && canManage;
-  const canDelete = canDeleteIssues(user);
-  const canDuplicate = canMarkAsDuplicate(issue) && canManage;
+  // Role-based permissions (CITIZEN, STEWARD, SUPER_ADMIN only)
+  const isCitizen = user?.role === 'CITIZEN';
+  const isSteward = user?.role === 'STEWARD';
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+  const isIssueOwner = user?.id === issue.user_id;
   
-  const availableTransitions = getAvailableStatusTransitions(issue.status, user);
+  const canChangeStatus = isSteward || isSuperAdmin;
+  const canArchive = canChangeStatus && issue.status === 'RESOLVED';
+  const canDelete = isSuperAdmin || isIssueOwner;
+  const canMarkDuplicate = canChangeStatus;
 
-  if (!canManage && !canDelete) {
-    return null; // User has no permissions
-  }
+  // Available status transitions
+  const getAvailableStatuses = () => {
+    const current = issue.status;
+    const statuses = [];
 
-  const handleArchive = async () => {
-    const validation = validateArchiveReason(archiveReason, archiveType);
-    if (!validation.isValid) {
-      toast.error(validation.error);
-      return;
+    if (canChangeStatus) {
+      switch (current) {
+        case 'OPEN':
+          statuses.push('ACKNOWLEDGED', 'IN_PROGRESS', 'RESOLVED', 'CLOSED');
+          break;
+        case 'ACKNOWLEDGED':
+          statuses.push('IN_PROGRESS', 'RESOLVED', 'CLOSED');
+          break;
+        case 'IN_PROGRESS':
+          statuses.push('RESOLVED', 'CLOSED');
+          break;
+        case 'RESOLVED':
+          statuses.push('CLOSED');
+          if (canMarkDuplicate) statuses.push('DUPLICATE');
+          break;
+        default:
+          break;
+      }
     }
 
+    return statuses.map(status => ({
+      value: status,
+      label: STATUS_CONFIG[status]?.label || status,
+      color: STATUS_CONFIG[status]?.color || 'gray',
+      icon: STATUS_CONFIG[status]?.icon || Settings
+    }));
+  };
+
+  const availableTransitions = getAvailableStatuses();
+
+  // Don't show if user has no permissions
+  if (!canChangeStatus && !canDelete) {
+    return null;
+  }
+
+  // Modal handlers
+  const handleArchive = async () => {
     setIsLoading(true);
     try {
       await archiveIssue(issue.id, {
@@ -79,7 +122,8 @@ const IssueManagementActions = ({
       });
       
       toast.success('Issue archived successfully');
-      setShowArchiveDialog(false);
+      setShowArchiveModal(false);
+      setArchiveReason('');
       onIssueRemoved?.(issue.id);
     } catch (error) {
       toast.error(error.message || 'Failed to archive issue');
@@ -89,17 +133,23 @@ const IssueManagementActions = ({
   };
 
   const handleDelete = async () => {
-    if (!deleteReason.trim() || deleteReason.trim().length < 10) {
-      toast.error('Please provide a detailed reason for deletion (at least 10 characters)');
-      return;
-    }
-
     setIsLoading(true);
     try {
-      await deleteIssue(issue.id);
+      const result = await deleteIssue(issue.id, {
+        reason: deleteReason.trim(),
+        deletedBy: user.id,
+        notes: `Issue permanently deleted by ${isSuperAdmin ? 'Super Admin' : 'Issue Owner'}: ${user.name}`
+      });
       
-      toast.success('Issue deleted successfully');
-      setShowDeleteDialog(false);
+      const deletedData = result.deletedData || {};
+      const mediaCount = deletedData.mediaFiles || 0;
+      
+      toast.success(
+        `Issue permanently deleted! ${mediaCount > 0 ? `${mediaCount} media file${mediaCount !== 1 ? 's' : ''} removed from cloud storage.` : ''}`
+      );
+      
+      setShowDeleteModal(false);
+      setDeleteReason('');
       onIssueRemoved?.(issue.id);
     } catch (error) {
       toast.error(error.message || 'Failed to delete issue');
@@ -109,11 +159,6 @@ const IssueManagementActions = ({
   };
 
   const handleMarkDuplicate = async () => {
-    if (!duplicateIssueId.trim() || !duplicateReason.trim()) {
-      toast.error('Please provide the primary issue ID and reason');
-      return;
-    }
-
     setIsLoading(true);
     try {
       await markAsDuplicate(issue.id, {
@@ -122,7 +167,9 @@ const IssueManagementActions = ({
       });
       
       toast.success('Issue marked as duplicate');
-      setShowDuplicateDialog(false);
+      setShowDuplicateModal(false);
+      setDuplicateIssueId('');
+      setDuplicateReason('');
       onStatusUpdate?.(issue.id, 'DUPLICATE');
     } catch (error) {
       toast.error(error.message || 'Failed to mark as duplicate');
@@ -132,17 +179,14 @@ const IssueManagementActions = ({
   };
 
   const handleStatusUpdate = async () => {
-    if (!newStatus || !statusReason.trim()) {
-      toast.error('Please select a status and provide a reason');
-      return;
-    }
-
     setIsLoading(true);
     try {
       await updateIssueStatus(issue.id, newStatus, statusReason.trim());
       
-      toast.success(`Issue status updated to ${newStatus}`);
-      setShowStatusDialog(false);
+      toast.success(`Issue status updated to ${STATUS_CONFIG[newStatus]?.label || newStatus}`);
+      setShowStatusModal(false);
+      setNewStatus('');
+      setStatusReason('');
       onStatusUpdate?.(issue.id, newStatus);
     } catch (error) {
       toast.error(error.message || 'Failed to update status');
@@ -153,579 +197,294 @@ const IssueManagementActions = ({
 
   if (compact) {
     return (
-      <div className={`flex items-center space-x-2 ${className}`}>
-        {/* Status Update */}
+      <div className={`flex items-center space-x-1 ${className}`}>
+        {/* Quick Status Actions */}
         {availableTransitions.length > 0 && (
-          <>
+          <div className="relative group">
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => setShowStatusDialog(true)}
+              className="h-8 px-2"
             >
-              <Clock className="h-3 w-3 mr-1" />
-              Status
+              <MoreHorizontal className="h-3 w-3" />
             </Button>
-            <Dialog open={showStatusDialog} onOpenChange={setShowStatusDialog}>
-              <DialogContent className="max-w-md">
-                <DialogHeader className="text-center">
-                  <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                    <Settings className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <DialogTitle className="text-lg font-semibold text-gray-900">
-                    Update Issue Status
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <div className="flex items-start space-x-2">
-                      <AlertTriangle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-blue-800">
-                        Status updates will be visible to all users following this issue.
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      New Status <span className="text-red-500">*</span>
-                    </label>
-                    <select 
-                      value={newStatus} 
-                      onChange={(e) => setNewStatus(e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1A2A80] focus:border-transparent"
-                    >
-                      <option value="">Select Status</option>
-                      {availableTransitions.map(status => (
-                        <option key={status.value} value={status.value}>
-                          {status.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Reason
-                    </label>
-                    <Textarea
-                      value={statusReason}
-                      onChange={(e) => setStatusReason(e.target.value)}
-                      placeholder="Explain the reason for status change..."
-                      rows={3}
-                      className="w-full resize-none"
-                    />
-                  </div>
-                  
-                  <div className="flex space-x-3 pt-4">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setShowStatusDialog(false)}
-                      className="flex-1"
-                      disabled={isLoading}
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      onClick={handleStatusUpdate} 
-                      disabled={isLoading || !newStatus}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      {isLoading ? 'Updating...' : 'Update Status'}
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </>
+            <div className="absolute top-full left-0 mt-1 z-10 hidden group-hover:block bg-white shadow-lg border rounded-lg p-1 min-w-[120px]">
+              {availableTransitions.slice(0, 3).map(status => {
+                const Icon = status.icon;
+                return (
+                  <button
+                    key={status.value}
+                    onClick={() => {
+                      setNewStatus(status.value);
+                      setShowStatusModal(true);
+                    }}
+                    className="w-full text-left px-2 py-1 text-xs hover:bg-gray-50 rounded flex items-center space-x-1"
+                  >
+                    <Icon className="h-3 w-3" />
+                    <span>{status.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         )}
 
-        {/* Archive Button - Only for resolved issues */}
+        {/* Archive */}
         {canArchive && (
-          <>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowArchiveDialog(true)}
-            >
-              <Archive className="h-3 w-3 mr-1" />
-              Archive
-            </Button>
-            <Dialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
-              <DialogContent className="max-w-md">
-                <DialogHeader className="text-center">
-                  <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center">
-                    <Archive className="h-6 w-6 text-amber-600" />
-                  </div>
-                  <DialogTitle className="text-lg font-semibold text-gray-900">
-                    Archive Resolved Issue
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                    <div className="flex items-start space-x-2">
-                      <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-amber-800">
-                        This will remove the issue from active listings. Only resolved issues can be archived.
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Archive Type</label>
-                    <select 
-                      value={archiveType} 
-                      onChange={(e) => setArchiveType(e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1A2A80] focus:border-transparent"
-                    >
-                      <option value="RESOLVED_EXTERNALLY">Resolved Externally</option>
-                      <option value="INVALID">Invalid Report</option>
-                      <option value="SPAM">Spam</option>
-                      <option value="DUPLICATE">Duplicate</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Reason <span className="text-red-500">*</span>
-                    </label>
-                    <Textarea
-                      value={archiveReason}
-                      onChange={(e) => setArchiveReason(e.target.value)}
-                      placeholder="Provide a detailed reason for archiving this issue..."
-                      rows={3}
-                      className="w-full resize-none"
-                    />
-                  </div>
-                  
-                  <div className="flex space-x-3 pt-4">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setShowArchiveDialog(false)}
-                      className="flex-1"
-                      disabled={isLoading}
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      onClick={handleArchive} 
-                      disabled={isLoading}
-                      className="flex-1 bg-amber-600 hover:bg-amber-700 text-white"
-                    >
-                      {isLoading ? 'Archiving...' : 'Archive Issue'}
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => setShowArchiveModal(true)}
+            className="h-8 px-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+          >
+            <Archive className="h-3 w-3" />
+          </Button>
         )}
 
-        {/* Delete Button - Admin only */}
+        {/* Delete */}
         {canDelete && (
-          <>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowDeleteDialog(true)}
-              className="border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-700"
-            >
-              <Trash2 className="h-3 w-3 mr-1" />
-              Delete
-            </Button>
-            <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-              <DialogContent className="max-w-md">
-                <DialogHeader className="text-center">
-                  <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
-                    <AlertTriangle className="h-6 w-6 text-red-600" />
-                  </div>
-                  <DialogTitle className="text-lg font-semibold text-gray-900">
-                    Delete Issue Permanently?
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600 mb-4">
-                      This action cannot be undone. All associated data including comments and votes will be permanently removed.
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Reason for Deletion <span className="text-red-500">*</span>
-                    </label>
-                    <Textarea
-                      value={deleteReason}
-                      onChange={(e) => setDeleteReason(e.target.value)}
-                      placeholder="Provide a detailed reason for permanently deleting this issue..."
-                      rows={3}
-                      className="w-full resize-none"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Minimum 10 characters required
-                    </p>
-                  </div>
-                  
-                  <div className="flex space-x-3 pt-4">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setShowDeleteDialog(false)}
-                      className="flex-1"
-                      disabled={isLoading}
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      onClick={handleDelete} 
-                      disabled={isLoading || !deleteReason.trim() || deleteReason.trim().length < 10}
-                      className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-                    >
-                      {isLoading ? 'Deleting...' : 'Delete Permanently'}
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => setShowDeleteModal(true)}
+            className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+          >
+            <Trash2 className="h-3 w-3" />
+          </Button>
         )}
       </div>
     );
   }
 
+  // Full management panel for detail page
   return (
-    <div className={`space-y-2 ${className}`}>
+    <div className={`bg-gray-50 rounded-lg p-4 space-y-4 ${className}`}>
       <div className="flex items-center justify-between">
-        <h4 className="font-medium text-gray-900">Issue Management</h4>
-        <Badge variant="outline">
-          {user.role === 'SUPER_ADMIN' ? 'Admin' : 'Steward'}
-        </Badge>
+        <h4 className="font-semibold text-gray-900 flex items-center space-x-2">
+          <Settings className="h-4 w-4" />
+          <span>Issue Management</span>
+        </h4>
+        <div className="flex items-center space-x-2">
+          <Badge variant="outline" className="text-xs">
+            {user?.role?.replace('_', ' ')}
+          </Badge>
+          <Badge variant={STATUS_CONFIG[issue.status]?.color === 'green' ? 'success' : 'secondary'}>
+            {STATUS_CONFIG[issue.status]?.label || issue.status}
+          </Badge>
+        </div>
       </div>
 
-      {/* Status Management */}
+      {/* Status Transitions */}
       {availableTransitions.length > 0 && (
-        <div className="space-y-2">
-          <h5 className="text-sm font-medium text-gray-700">Update Status</h5>
-          <div className="flex flex-wrap gap-2">
-            {availableTransitions.map(status => (
-              <Button
-                key={status.value}
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setNewStatus(status.value);
-                  setShowStatusDialog(true);
-                }}
-                className={`text-${status.color}-600 border-${status.color}-200 hover:bg-${status.color}-50`}
-              >
-                {status.label}
-              </Button>
-            ))}
+        <div className="space-y-3">
+          <h5 className="text-sm font-medium text-gray-700">Available Status Changes</h5>
+          <div className="grid grid-cols-2 gap-2">
+            {availableTransitions.map(status => {
+              const Icon = status.icon;
+              return (
+                <Button
+                  key={status.value}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setNewStatus(status.value);
+                    setShowStatusModal(true);
+                  }}
+                  className="justify-start h-10"
+                >
+                  <Icon className="h-4 w-4 mr-2" />
+                  {status.label}
+                </Button>
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* Archive/Delete Actions */}
-      <div className="flex items-center space-x-2 pt-2 border-t">
-        {canArchive && (
-          <Button
-            variant="warning"
-            size="sm"
-            onClick={() => setShowArchiveDialog(true)}
-          >
-            <Archive className="h-4 w-4 mr-2" />
-            Archive Issue
-          </Button>
-        )}
+      {/* Administrative Actions */}
+      <div className="space-y-3 pt-3 border-t border-gray-200">
+        <h5 className="text-sm font-medium text-gray-700">Administrative Actions</h5>
+        <div className="flex flex-wrap gap-2">
+          {canArchive && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowArchiveModal(true)}
+              className="text-amber-600 border-amber-200 hover:bg-amber-50"
+            >
+              <Archive className="h-4 w-4 mr-2" />
+              Archive (Soft Delete)
+            </Button>
+          )}
 
-        {canDuplicate && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowDuplicateDialog(true)}
-          >
-            <Copy className="h-4 w-4 mr-2" />
-            Mark Duplicate
-          </Button>
-        )}
+          {canMarkDuplicate && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowDuplicateModal(true)}
+              className="text-purple-600 border-purple-200 hover:bg-purple-50"
+            >
+              <Copy className="h-4 w-4 mr-2" />
+              Mark Duplicate
+            </Button>
+          )}
 
-        {canDelete && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowDeleteDialog(true)}
-            className="border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-700"
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete
-          </Button>
-        )}
+          {canDelete && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowDeleteModal(true)}
+              className="text-red-600 border-red-200 hover:bg-red-50"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Hard Delete
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Status Update Dialog */}
-      <Dialog open={showStatusDialog} onOpenChange={setShowStatusDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader className="text-center">
-            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-              <Settings className="h-6 w-6 text-blue-600" />
-            </div>
-            <DialogTitle className="text-lg font-semibold text-gray-900">
-              Update Issue Status
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <div className="flex items-start space-x-2">
-                <AlertTriangle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-blue-800">
-                  Status updates will be visible to all users following this issue.
-                </p>
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                New Status <span className="text-red-500">*</span>
-              </label>
-              <select 
-                value={newStatus} 
-                onChange={(e) => setNewStatus(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1A2A80] focus:border-transparent"
-              >
-                <option value="">Select Status</option>
-                {availableTransitions.map(status => (
-                  <option key={status.value} value={status.value}>
-                    {status.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Reason
-              </label>
-              <Textarea
-                value={statusReason}
-                onChange={(e) => setStatusReason(e.target.value)}
-                placeholder="Explain the reason for status change..."
-                rows={3}
-                className="w-full resize-none"
-              />
-            </div>
-            
-            <div className="flex space-x-3 pt-4">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowStatusDialog(false)}
-                className="flex-1"
-                disabled={isLoading}
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleStatusUpdate} 
-                disabled={isLoading || !newStatus}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                {isLoading ? 'Updating...' : 'Update Status'}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Status Update Modal */}
+      <ConfirmationModal
+        isOpen={showStatusModal}
+        onClose={() => {
+          setShowStatusModal(false);
+          setNewStatus('');
+          setStatusReason('');
+        }}
+        onConfirm={handleStatusUpdate}
+        title="Update Issue Status"
+        description="Status updates will be visible to all users and notify issue followers."
+        icon={Settings}
+        variant="info"
+        confirmText="Update Status"
+        isLoading={isLoading}
+        showSelectInput={true}
+        selectOptions={availableTransitions}
+        selectValue={newStatus}
+        onSelectChange={setNewStatus}
+        selectLabel="New Status"
+        selectRequired={true}
+        showTextInput={true}
+        textInputValue={statusReason}
+        onTextInputChange={setStatusReason}
+        textInputLabel="Reason"
+        textInputPlaceholder="Explain the reason for status change..."
+        textInputRequired={true}
+      />
 
-      {/* Duplicate Dialog */}
-      <Dialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader className="text-center">
-            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
-              <Copy className="h-6 w-6 text-purple-600" />
-            </div>
-            <DialogTitle className="text-lg font-semibold text-gray-900">
-              Mark as Duplicate
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-              <div className="flex items-start space-x-2">
-                <AlertTriangle className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-purple-800">
-                  This will link this issue to an existing primary issue and close it.
-                </p>
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Primary Issue ID <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={duplicateIssueId}
-                onChange={(e) => setDuplicateIssueId(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1A2A80] focus:border-transparent"
-                placeholder="Enter the ID of the primary issue"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Reason
-              </label>
-              <Textarea
-                value={duplicateReason}
-                onChange={(e) => setDuplicateReason(e.target.value)}
-                placeholder="Explain why this is a duplicate..."
-                rows={3}
-                className="w-full resize-none"
-              />
-            </div>
-            
-            <div className="flex space-x-3 pt-4">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowDuplicateDialog(false)}
-                className="flex-1"
-                disabled={isLoading}
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleMarkDuplicate} 
-                disabled={isLoading || !duplicateIssueId.trim()}
-                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
-              >
-                {isLoading ? 'Marking...' : 'Mark as Duplicate'}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Archive Modal */}
+      <ConfirmationModal
+        isOpen={showArchiveModal}
+        onClose={() => {
+          setShowArchiveModal(false);
+          setArchiveReason('');
+        }}
+        onConfirm={handleArchive}
+        title="Archive Issue"
+        description="Archiving will soft-delete this issue. It can be restored later if needed."
+        icon={Archive}
+        variant="warning"
+        confirmText="Archive Issue"
+        isLoading={isLoading}
+        showSelectInput={true}
+        selectOptions={ARCHIVE_TYPES}
+        selectValue={archiveType}
+        onSelectChange={setArchiveType}
+        selectLabel="Archive Type"
+        selectRequired={true}
+        showTextInput={true}
+        textInputValue={archiveReason}
+        onTextInputChange={setArchiveReason}
+        textInputLabel="Reason"
+        textInputPlaceholder="Provide a detailed reason for archiving..."
+        textInputRequired={true}
+        textInputMinLength={10}
+      />
 
-      {/* Archive Dialog */}
-      <Dialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader className="text-center">
-            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center">
-              <Archive className="h-6 w-6 text-amber-600" />
-            </div>
-            <DialogTitle className="text-lg font-semibold text-gray-900">
-              Archive Resolved Issue
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-              <div className="flex items-start space-x-2">
-                <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-amber-800">
-                  This will remove the issue from active listings. Only resolved issues can be archived.
-                </p>
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Archive Type <span className="text-red-500">*</span>
-              </label>
-              <select 
-                value={archiveType} 
-                onChange={(e) => setArchiveType(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1A2A80] focus:border-transparent"
-              >
-                <option value="RESOLVED_EXTERNALLY">Resolved Externally</option>
-                <option value="INVALID">Invalid Report</option>
-                <option value="SPAM">Spam</option>
-                <option value="DUPLICATE">Duplicate</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Reason <span className="text-red-500">*</span>
-              </label>
-              <Textarea
-                value={archiveReason}
-                onChange={(e) => setArchiveReason(e.target.value)}
-                placeholder="Provide a detailed reason for archiving this issue..."
-                rows={3}
-                className="w-full resize-none"
-              />
-            </div>
-            
-            <div className="flex space-x-3 pt-4">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowArchiveDialog(false)}
-                className="flex-1"
-                disabled={isLoading}
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleArchive} 
-                disabled={isLoading || !archiveReason.trim()}
-                className="flex-1 bg-amber-600 hover:bg-amber-700 text-white"
-              >
-                {isLoading ? 'Archiving...' : 'Archive Issue'}
-              </Button>
-            </div>
+      {/* Mark Duplicate Modal */}
+      <ConfirmationModal
+        isOpen={showDuplicateModal}
+        onClose={() => {
+          setShowDuplicateModal(false);
+          setDuplicateIssueId('');
+          setDuplicateReason('');
+        }}
+        onConfirm={handleMarkDuplicate}
+        title="Mark as Duplicate"
+        description="This will link this issue to an existing primary issue and mark it as resolved."
+        icon={Copy}
+        variant="info"
+        confirmText="Mark Duplicate"
+        isLoading={isLoading}
+        customValidation={() => duplicateIssueId.trim() && duplicateReason.trim()}
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Primary Issue ID <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={duplicateIssueId}
+              onChange={(e) => setDuplicateIssueId(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              placeholder="Enter the ID of the primary issue"
+            />
           </div>
-        </DialogContent>
-      </Dialog>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Reason <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              value={duplicateReason}
+              onChange={(e) => setDuplicateReason(e.target.value)}
+              placeholder="Explain why this is a duplicate..."
+              rows={3}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all"
+            />
+          </div>
+        </div>
+      </ConfirmationModal>
 
-      {/* Delete Dialog */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader className="text-center">
-            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
-              <AlertTriangle className="h-6 w-6 text-red-600" />
-            </div>
-            <DialogTitle className="text-lg font-semibold text-gray-900">
-              Delete Issue Permanently?
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-4">
-                This action cannot be undone. All associated data including comments and votes will be permanently removed.
-              </p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Reason for Deletion <span className="text-red-500">*</span>
-              </label>
-              <Textarea
-                value={deleteReason}
-                onChange={(e) => setDeleteReason(e.target.value)}
-                placeholder="Provide a detailed reason for permanently deleting this issue..."
-                rows={3}
-                className="w-full resize-none"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Minimum 10 characters required
-              </p>
-            </div>
-            
-            <div className="flex space-x-3 pt-4">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowDeleteDialog(false)}
-                className="flex-1"
-                disabled={isLoading}
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleDelete} 
-                disabled={isLoading || !deleteReason.trim() || deleteReason.trim().length < 10}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-              >
-                {isLoading ? 'Deleting...' : 'Delete Permanently'}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Hard Delete Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDeleteReason('');
+        }}
+        onConfirm={handleDelete}
+        title="Hard Delete Issue"
+        description="This action permanently deletes ALL data and cannot be undone."
+        icon={AlertTriangle}
+        variant="danger"
+        confirmText="Hard Delete"
+        isLoading={isLoading}
+        showTextInput={true}
+        textInputValue={deleteReason}
+        onTextInputChange={setDeleteReason}
+        textInputLabel="Reason for Deletion"
+        textInputPlaceholder="Provide a detailed justification for permanent deletion..."
+        textInputRequired={true}
+        textInputMinLength={20}
+        warningItems={[
+          'Issue record and description',
+          'All comments and replies',
+          'All votes (upvotes and downvotes)',
+          'All media files (images/videos from cloud storage)',
+          'Issue history and status changes',
+          'Comment flags and moderation data',
+          'Related cache entries'
+        ]}
+        infoItems={[
+          isSuperAdmin 
+            ? 'You can delete any issue as a Super Administrator.' 
+            : 'You can delete your own issues as the issue owner.',
+          'This action requires detailed justification.',
+          'All associated data will be permanently removed from our servers.'
+        ]}
+      />
     </div>
   );
 };

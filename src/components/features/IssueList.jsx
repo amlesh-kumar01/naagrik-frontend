@@ -70,7 +70,7 @@ const IssueList = ({
 
     // Apply category filter
     if (filters.category !== 'all') {
-      filtered = filtered.filter(issue => issue.category === filters.category);
+      filtered = filtered.filter(issue => issue.category_name === filters.category);
     }
 
     // Apply status filter
@@ -142,7 +142,8 @@ const IssueList = ({
       });
     } else {
       navigator.clipboard.writeText(url);
-      alert('Link copied to clipboard!');
+      // Professional feedback - can be replaced with toast notification system later
+      console.log('Link copied to clipboard!');
     }
   };
 
@@ -178,14 +179,14 @@ const IssueList = ({
     updateIssue(issueId, updates);
   };
 
-  const categories = [...new Set(issues.map(issue => issue.category))];
+  const categories = [...new Set(issues.map(issue => issue.category_name).filter(Boolean))];
   const statuses = ['OPEN', 'ACKNOWLEDGED', 'IN_PROGRESS', 'RESOLVED'];
   const priorities = ['LOW', 'MEDIUM', 'HIGH'];
 
   const sortOptions = [
     { value: 'created_at', label: 'Latest' },
-    { value: 'votes_count', label: 'Most Voted' },
-    { value: 'comments_count', label: 'Most Discussed' },
+    { value: 'upvote_count', label: 'Most Upvoted' },
+    { value: 'comment_count', label: 'Most Discussed' },
     { value: 'title', label: 'Alphabetical' },
   ];
 

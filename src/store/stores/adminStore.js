@@ -19,6 +19,7 @@ export const useAdminStore = create((set, get) => ({
       const response = await adminAPI.getAllUsers(params);
       const users = response.data?.users || response.users || [];
       set({ users, isLoading: false });
+      console.log('Fetched users:', users);
       return { success: true, users };
     } catch (error) {
       const errorMessage = error.message || 'Failed to fetch users';

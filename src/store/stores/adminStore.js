@@ -3,7 +3,12 @@ import { adminAPI } from '../../lib/api/adminApi';
 
 export const useAdminStore = create((set, get) => ({
   // State
-  users: [],
+  users: {
+    data: [],
+    total: 0,
+    currentPage: 1,
+    limit: 20
+  },
   userStatistics: null,
   stewards: [],
   selectedUser: null,
@@ -17,10 +22,20 @@ export const useAdminStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await adminAPI.getAllUsers(params);
-      const users = response.data?.users || response.users || [];
-      set({ users, isLoading: false });
-      console.log('Fetched users:', users);
-      return { success: true, users };
+      const usersData = response.data?.users || response.users || [];
+      const total = response.data?.total || response.total || usersData.length;
+      
+      set({ 
+        users: {
+          data: usersData,
+          total: total,
+          currentPage: params.page || 1,
+          limit: params.limit || 20
+        }, 
+        isLoading: false 
+      });
+      console.log('Fetched users:', usersData);
+      return { success: true, users: usersData };
     } catch (error) {
       const errorMessage = error.message || 'Failed to fetch users';
       set({ error: errorMessage, isLoading: false });
@@ -32,9 +47,19 @@ export const useAdminStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await adminAPI.getFilteredUsers(params);
-      const users = response.data?.users || response.users || [];
-      set({ users, isLoading: false });
-      return { success: true, users };
+      const usersData = response.data?.users || response.users || [];
+      const total = response.data?.total || response.total || usersData.length;
+      
+      set({ 
+        users: {
+          data: usersData,
+          total: total,
+          currentPage: params.page || 1,
+          limit: params.limit || 20
+        }, 
+        isLoading: false 
+      });
+      return { success: true, users: usersData };
     } catch (error) {
       const errorMessage = error.message || 'Failed to fetch filtered users';
       set({ error: errorMessage, isLoading: false });
@@ -91,13 +116,19 @@ export const useAdminStore = create((set, get) => ({
       
       // Update user in the users list
       const { users } = get();
-      const updatedUsers = users.map(user => 
+      const updatedUsersData = users.data.map(user => 
         user.id === userId 
           ? { ...user, reputation: (user.reputation || 0) + change }
           : user
       );
       
-      set({ users: updatedUsers, isLoading: false });
+      set({ 
+        users: {
+          ...users,
+          data: updatedUsersData
+        }, 
+        isLoading: false 
+      });
       return { success: true, data: response.data };
     } catch (error) {
       const errorMessage = error.message || 'Failed to update user reputation';
@@ -113,13 +144,19 @@ export const useAdminStore = create((set, get) => ({
       
       // Update user in the users list
       const { users } = get();
-      const updatedUsers = users.map(user => 
+      const updatedUsersData = users.data.map(user => 
         user.id === userId 
           ? { ...user, suspended }
           : user
       );
       
-      set({ users: updatedUsers, isLoading: false });
+      set({ 
+        users: {
+          ...users,
+          data: updatedUsersData
+        }, 
+        isLoading: false 
+      });
       return { success: true, data: response.data };
     } catch (error) {
       const errorMessage = error.message || 'Failed to update user status';
@@ -135,13 +172,19 @@ export const useAdminStore = create((set, get) => ({
       
       // Update users in the list
       const { users } = get();
-      const updatedUsers = users.map(user => 
+      const updatedUsers = users.data.map(user => 
         userIds.includes(user.id) 
           ? { ...user, role }
           : user
       );
       
-      set({ users: updatedUsers, isLoading: false });
+      set({ 
+        users: {
+          ...users,
+          data: updatedUsers
+        },
+        isLoading: false 
+      });
       return { success: true, data: response.data };
     } catch (error) {
       const errorMessage = error.message || 'Failed to bulk update user roles';

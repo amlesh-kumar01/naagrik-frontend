@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore, useIssuesStore, useStewardStore } from '../../store';
-import { stewardAPI } from '../../lib/api/stewardApi';
+import { useAuthStore, useStewardStore } from '../../store';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -31,13 +30,16 @@ import {
 
 const StewardDashboardPage = () => {
   const { user, isAuthenticated, isInitialized, isLoading: authLoading } = useAuthStore();
-  const { issues, isLoading, error, fetchIssues } = useIssuesStore();
-  const { myCategories, fetchMyCategories } = useStewardStore();
+  const { 
+    myAssignedIssues,
+    stewardStats,
+    isLoading,
+    error,
+    fetchMyAssignedIssues,
+    fetchMyStewardStats
+  } = useStewardStore();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
-  const [assignedIssues, setAssignedIssues] = useState([]);
-  const [stewardStats, setStewardStats] = useState(null);
-  const [statsLoading, setStatsLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
 
   // Handle client-side mounting
@@ -63,42 +65,16 @@ const StewardDashboardPage = () => {
     }
 
     if (user) {
-      fetchStewardData();
+      fetchMyAssignedIssues();
+      fetchMyStewardStats();
     }
   }, [mounted, user, router, isInitialized, authLoading]);
 
-  const fetchStewardData = async () => {
-    try {
-      setStatsLoading(true);
-      
-      console.log('Fetching steward data...');
-      
-      // Fetch steward stats
-      const statsResponse = await stewardAPI.getMyStewardStats();
-      console.log('Stats response:', statsResponse.data);
-      setStewardStats(statsResponse.data);
-      
-      // Fetch assigned issues
-      const issuesResponse = await stewardAPI.getMyAssignedIssues();
-      console.log('Issues response:', issuesResponse.data);
-      console.log('Issues count:', issuesResponse.data?.issues?.length || 0);
-      
-      const issues = issuesResponse.data?.issues || [];
-      console.log('Setting assigned issues:', issues);
-      setAssignedIssues(issues);
-      
-    } catch (error) {
-      console.error('Failed to fetch steward data:', error);
-    } finally {
-      setStatsLoading(false);
-    }
-  };
-
-  // Calculate stats from API data or fallback to local calculation
-  const totalAssigned = stewardStats?.totalAssigned || assignedIssues.length;
-  const resolved = stewardStats?.resolved || assignedIssues.filter(issue => issue.status === 'resolved').length;
-  const inProgress = stewardStats?.inProgress || assignedIssues.filter(issue => issue.status === 'in_progress').length;
-  const pending = stewardStats?.pending || assignedIssues.filter(issue => issue.status === 'pending').length;
+  // Calculate stats from store data
+  const totalAssigned = stewardStats?.totalAssigned || myAssignedIssues.length;
+  const resolved = stewardStats?.resolved || myAssignedIssues.filter(issue => issue.status === 'RESOLVED').length;
+  const inProgress = stewardStats?.inProgress || myAssignedIssues.filter(issue => issue.status === 'IN_PROGRESS').length;
+  const pending = stewardStats?.pending || myAssignedIssues.filter(issue => issue.status === 'OPEN' || issue.status === 'ACKNOWLEDGED').length;
   const resolutionRate = stewardStats?.resolutionRate || (totalAssigned > 0 ? Math.round((resolved / totalAssigned) * 100) : 0);
 
   const stats = [
@@ -132,12 +108,9 @@ const StewardDashboardPage = () => {
     }
   ];
 
-  const recentIssues = assignedIssues
+  const recentIssues = myAssignedIssues
     .sort((a, b) => new Date(b.createdAt || b.created_at) - new Date(a.createdAt || a.created_at))
     .slice(0, 5);
-
-  console.log('Assigned issues state:', assignedIssues);
-  console.log('Recent issues:', recentIssues);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -157,8 +130,8 @@ const StewardDashboardPage = () => {
     }
   };
 
-  // Show loading while mounting, auth is initializing, or stats are loading
-  if (!mounted || !isInitialized || authLoading || statsLoading) {
+  // Show loading while mounting, auth is initializing, or store is loading
+  if (!mounted || !isInitialized || authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: colors.gradients.secondary }}>
         <LoadingCard message="Loading dashboard..." />
@@ -232,7 +205,7 @@ const StewardDashboardPage = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              My Issues ({assignedIssues.length})
+              My Issues ({myAssignedIssues.length})
             </button>
           </nav>
         </div>
@@ -273,7 +246,7 @@ const StewardDashboardPage = () => {
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg font-semibold">
-                    Assigned Issues ({assignedIssues.length})
+                    Assigned Issues ({myAssignedIssues.length})
                   </CardTitle>
                   <Button variant="outline" size="sm" onClick={() => router.push('/steward/dashboard?tab=issues')}>
                     View All
@@ -419,13 +392,13 @@ const StewardDashboardPage = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900">My Assigned Issues</h2>
               <div className="text-sm text-gray-500">
-                Total: {assignedIssues.length} issues
+                Total: {myAssignedIssues.length} issues
               </div>
             </div>
             
-            {assignedIssues.length > 0 ? (
+            {myAssignedIssues.length > 0 ? (
               <div className="grid gap-4">
-                {assignedIssues.map((issue) => (
+                {myAssignedIssues.map((issue) => (
                   <Card 
                     key={issue.id} 
                     className="border-0 shadow-md hover:shadow-lg transition-shadow cursor-pointer"

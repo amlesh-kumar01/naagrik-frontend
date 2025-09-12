@@ -79,7 +79,7 @@ const UserManagementPage = () => {
   // Show loading while auth is initializing
   if (!isInitialized || authLoading) {
     return (
-      <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)' }}>
+      <div className="min-h-screen" style={{ background: colors.gradients.pageBackground }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <LoadingCard />
         </div>
@@ -163,7 +163,7 @@ const UserManagementPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)' }}>
+      <div className="min-h-screen" style={{ background: colors.gradients.pageBackground }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <LoadingCard />
         </div>
@@ -172,7 +172,7 @@ const UserManagementPage = () => {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: colors.gradients.secondary }}>
+    <div className="min-h-screen" style={{ background: colors.gradients.pageBackground }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -192,12 +192,12 @@ const UserManagementPage = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl" style={{
-                background: 'linear-gradient(135deg, #7A85C1 0%, #3B38A0 100%)'
+                background: colors.gradients.header
               }}>
                 <Users className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-[#1A2A80]">User Management</h1>
+                <h1 className="text-3xl font-bold" style={{ color: colors.primary[700] }}>User Management</h1>
                 <p className="text-gray-600">Manage users, roles, and permissions</p>
               </div>
             </div>
@@ -206,7 +206,7 @@ const UserManagementPage = () => {
               <Button
                 variant="outline"
                 onClick={() => setShowFilters(!showFilters)}
-                className="border-[#7A85C1] text-[#3B38A0] hover:bg-[#7A85C1] hover:text-white"
+                className={`border-[${colors.primary[400]}] text-[${colors.primary[600]}] hover:bg-[${colors.primary[500]}] hover:text-white`}
               >
                 <Filter className="h-4 w-4 mr-2" />
                 Filters
@@ -215,7 +215,7 @@ const UserManagementPage = () => {
               <Button
                 variant="outline"
                 onClick={loadUsers}
-                className="border-[#7A85C1] text-[#3B38A0] hover:bg-[#7A85C1] hover:text-white"
+                className={`border-[${colors.primary[400]}] text-[${colors.primary[600]}] hover:bg-[${colors.primary[500]}] hover:text-white`}
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Refresh
@@ -246,7 +246,7 @@ const UserManagementPage = () => {
                 </div>
                 <Button
                   type="submit"
-                  className="bg-gradient-to-r from-[#3B38A0] to-[#1A2A80] hover:from-[#1A2A80] hover:to-[#3B38A0] text-white"
+                  className={`bg-gradient-to-r from-[${colors.primary[600]}] to-[${colors.primary[700]}] hover:from-[${colors.primary[700]}] hover:to-[${colors.primary[600]}] text-white`}
                 >
                   <Search className="h-4 w-4 mr-2" />
                   Search
@@ -260,7 +260,7 @@ const UserManagementPage = () => {
                     <select
                       value={selectedRole}
                       onChange={(e) => setSelectedRole(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3B38A0] focus:border-transparent"
+                      className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[${colors.primary[600]}] focus:border-transparent`}
                     >
                       {roleOptions.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -275,7 +275,7 @@ const UserManagementPage = () => {
                     <select
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3B38A0] focus:border-transparent"
+                      className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[${colors.primary[600]}] focus:border-transparent`}
                     >
                       {statusOptions.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -294,19 +294,19 @@ const UserManagementPage = () => {
         <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-[#1A2A80]">
+              <CardTitle className={`text-[${colors.primary[800]}]`}>
                 Users ({users.total || 0})
               </CardTitle>
               <div className="flex space-x-2">
                 {selectedUsers.length > 0 && (
-                  <Badge variant="secondary" className="bg-[#B2B0E8] text-[#1A2A80]">
+                  <Badge variant="secondary" className={`bg-[${colors.primary[100]}] text-[${colors.primary[800]}]`}>
                     {selectedUsers.length} selected
                   </Badge>
                 )}
                 <Button
                   variant="outline"
                   size="sm"
-                  className="border-[#7A85C1] text-[#3B38A0] hover:bg-[#7A85C1] hover:text-white"
+                  className={`border-[${colors.primary[400]}] text-[${colors.primary[600]}] hover:bg-[${colors.primary[500]}] hover:text-white`}
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Export
@@ -324,7 +324,7 @@ const UserManagementPage = () => {
                         type="checkbox"
                         checked={selectedUsers.length === users.data?.length && users.data?.length > 0}
                         onChange={handleSelectAll}
-                        className="rounded border-gray-300 text-[#3B38A0] focus:ring-[#3B38A0]"
+                        className={`rounded border-gray-300 text-[${colors.primary[600]}] focus:ring-[${colors.primary[600]}]`}
                       />
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -358,12 +358,12 @@ const UserManagementPage = () => {
                           type="checkbox"
                           checked={selectedUsers.includes(userData.id)}
                           onChange={() => handleSelectUser(userData.id)}
-                          className="rounded border-gray-300 text-[#3B38A0] focus:ring-[#3B38A0]"
+                          className={`rounded border-gray-300 text-[${colors.primary[600]}] focus:ring-[${colors.primary[600]}]`}
                         />
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#7A85C1] to-[#3B38A0] flex items-center justify-center text-white font-semibold">
+                          <div className={`w-10 h-10 rounded-full bg-gradient-to-r from-[${colors.primary[500]}] to-[${colors.primary[600]}] flex items-center justify-center text-white font-semibold`}>
                             {userData.name?.charAt(0)?.toUpperCase() || 'U'}
                           </div>
                           <div className="ml-4">
@@ -441,7 +441,7 @@ const UserManagementPage = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => router.push(`/admin/users/${userData.id}`)}
-                          className="text-[#3B38A0] hover:bg-[#B2B0E8]/20"
+                          className={`text-[${colors.primary[600]}] hover:bg-[${colors.primary[100]}]/20`}
                         >
                           <Edit3 className="h-4 w-4" />
                         </Button>

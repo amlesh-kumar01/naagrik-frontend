@@ -87,9 +87,9 @@ const Header = () => {
       case 'STEWARD':
         return 'bg-green-100 text-green-800';
       case 'SUPER_ADMIN':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-green-200 text-green-900';
       default:
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-green-50 text-green-700';
     }
   };
 
@@ -104,7 +104,7 @@ const Header = () => {
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
               <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
-                <Users className="h-6 w-6" style={{ color: colors.primary[400] }} />
+                <Users className="h-6 w-6" style={{ color: '#34d399' }} />
               </div>
               <span className="text-xl font-bold" style={{ color: componentColors.header.text }}>
                 Naagrik
@@ -202,7 +202,7 @@ const Header = () => {
                             backgroundColor: componentColors.admin.dropdown.activeItem.background,
                             borderRight: `2px solid ${componentColors.admin.dropdown.activeItem.border}`
                           } : {
-                            color: '#374151'
+                            color: colors.primary[700]
                           }}
                           onMouseEnter={(e) => {
                             if (!isActiveItem) {
@@ -273,7 +273,7 @@ const Header = () => {
                       <AvatarImage src={user.avatar} alt={user.fullName} />
                       <AvatarFallback 
                         className="bg-white font-semibold"
-                        style={{ color: colors.primary[400] }}
+                        style={{ color: '#34d399' }}
                       >
                         {user.fullName?.charAt(0)?.toUpperCase() || 'U'}
                       </AvatarFallback>
@@ -315,14 +315,14 @@ const Header = () => {
                               variant="secondary" 
                               className="text-xs"
                               style={{ 
-                                backgroundColor: colors.primary[200],
+                                backgroundColor: '#6ee7b7',
                                 color: colors.primary[500] 
                               }}
                             >
                               {user.role?.toLowerCase()}
                             </Badge>
                             <div className="flex items-center space-x-1 text-xs text-gray-500">
-                              <Award className="h-3 w-3" style={{ color: colors.primary[300] }} />
+                              <Award className="h-3 w-3" style={{ color: '#6ee7b7' }} />
                               <span>{user.reputation_score || 0} pts</span>
                             </div>
                           </div>
@@ -337,7 +337,7 @@ const Header = () => {
                           onMouseEnter={(e) => e.target.style.backgroundColor = colors.primary[100] + '20'}
                           onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
                         >
-                          <User className="mr-3 h-4 w-4" style={{ color: colors.primary[400] }} />
+                          <User className="mr-3 h-4 w-4" style={{ color: '#34d399' }} />
                           Your Profile
                         </Link>
                         {user && user.role === 'CITIZEN' && (
@@ -351,7 +351,7 @@ const Header = () => {
                             onMouseEnter={(e) => e.target.style.backgroundColor = colors.primary[100] + '20'}
                             onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
                           >
-                            <Award className="mr-3 h-4 w-4" style={{ color: colors.primary[400] }} />
+                            <Award className="mr-3 h-4 w-4" style={{ color: '#6ee7b7' }} />
                             Become Steward
                           </Link>
                         )}
@@ -374,7 +374,7 @@ const Header = () => {
                                   onMouseEnter={(e) => e.target.style.backgroundColor = colors.primary[100] + '20'}
                                   onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
                                 >
-                                  <Icon className="mr-3 h-4 w-4" style={{ color: colors.primary[400] }} />
+                                  <Icon className="mr-3 h-4 w-4" style={{ color: '#34d399' }} />
                                   {item.name}
                                 </Link>
                               );
@@ -391,7 +391,7 @@ const Header = () => {
                           onMouseEnter={(e) => e.target.style.backgroundColor = colors.primary[100] + '20'}
                           onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
                         >
-                          <Settings className="mr-3 h-4 w-4" style={{ color: colors.primary[400] }} />
+                          <Settings className="mr-3 h-4 w-4" style={{ color: '#6ee7b7' }} />
                           Settings
                         </Link>
                         <button
@@ -441,7 +441,7 @@ const Header = () => {
                     href={item.href}
                     className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-base font-medium transition-all duration-200 ${
                       pathname === item.href
-                        ? 'text-[#3B38A0] bg-white shadow-lg'
+                        ? `text-[${colors.primary[600]}] bg-white shadow-lg`
                         : 'text-white/90 hover:text-white hover:bg-white/20 backdrop-blur-sm'
                     }`}
                     onClick={() => setIsMobileMenuOpen(false)}
@@ -466,7 +466,7 @@ const Header = () => {
                         href={item.href}
                         className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-base font-medium transition-all duration-200 ${
                           pathname === item.href
-                            ? 'text-[#3B38A0] bg-white shadow-lg'
+                            ? `text-[${colors.primary[600]}] bg-white shadow-lg`
                             : 'text-white/90 hover:text-white hover:bg-white/20 backdrop-blur-sm'
                         }`}
                         onClick={() => setIsMobileMenuOpen(false)}

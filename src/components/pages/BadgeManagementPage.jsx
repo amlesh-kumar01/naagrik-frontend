@@ -48,7 +48,7 @@ const BadgeManagementPage = () => {
     name: '',
     description: '',
     icon: 'star',
-    color: '#3B38A0',
+    color: colors.primary[600],
     criteria: '',
     points_required: 0
   });
@@ -62,7 +62,7 @@ const BadgeManagementPage = () => {
   ];
 
   const colorOptions = [
-    { value: '#3B38A0', label: 'Blue' },
+    { value: colors.primary[600], label: 'Green Primary' },
     { value: '#10B981', label: 'Green' },
     { value: '#F59E0B', label: 'Yellow' },
     { value: '#EF4444', label: 'Red' },
@@ -188,7 +188,14 @@ const BadgeManagementPage = () => {
             <Button
               variant="ghost"
               onClick={() => router.back()}
-              className="text-[#3B38A0] hover:bg-[#B2B0E8]/20"
+              className="transition-all duration-200"
+              style={{ color: colors.primary[600] }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = `${colors.primary[200]}33`;
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+              }}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Dashboard
@@ -197,12 +204,12 @@ const BadgeManagementPage = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl" style={{
-                background: 'linear-gradient(135deg, #7A85C1 0%, #3B38A0 100%)'
+                background: colors.gradients.primary
               }}>
                 <Award className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-[#1A2A80]">Badge Management</h1>
+                <h1 className="text-3xl font-bold" style={{ color: colors.primary[700] }}>Badge Management</h1>
                 <p className="text-gray-600">Create and manage achievement badges</p>
               </div>
             </div>

@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { isValidImageType, isValidVideoType } from '@/lib/utils';
 import { useLocationService } from '@/lib/hooks/useLocationService';
+import { colors } from '@/lib/theme';
 
 const AddIssueReportPage = () => {
   const router = useRouter();
@@ -330,20 +331,27 @@ const AddIssueReportPage = () => {
               <Button
                 variant="ghost"
                 onClick={() => router.back()}
-                className="mr-4 text-[#3B38A0] hover:bg-[#B2B0E8]/20"
+                className="mr-4 transition-all duration-200"
+                style={{ color: colors.primary[600] }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = `${colors.primary[200]}33`;
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'transparent';
+                }}
               >
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 Back
               </Button>
               <div className="mx-auto h-16 w-16 rounded-full flex items-center justify-center shadow-xl" style={{
-                background: 'linear-gradient(135deg, #B2B0E8 0%, #7A85C1 100%)'
+                background: colors.gradients.primary
               }}>
                 <AlertTriangle className="h-8 w-8 text-white" />
               </div>
             </div>
             
             <div className="text-center">
-              <h1 className="text-4xl font-bold text-[#1A2A80] mb-4">
+              <h1 className="text-4xl font-bold mb-4" style={{ color: colors.primary[700] }}>
                 Create Issue Report
               </h1>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -380,7 +388,7 @@ const AddIssueReportPage = () => {
             <div className="lg:order-2 space-y-6">
               <Card className="bg-white/95 backdrop-blur-sm shadow-xl border-0">
                 <CardHeader className="border-b border-gray-200">
-                  <CardTitle className="text-2xl font-bold text-[#1A2A80] flex items-center">
+                  <CardTitle className="text-2xl font-bold flex items-center" style={{ color: colors.primary[700] }}>
                     <MapPin className="h-6 w-6 mr-2" />
                     Location Selection
                   </CardTitle>
@@ -389,8 +397,8 @@ const AddIssueReportPage = () => {
                   {/* Map Controls */}
                   <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-2">
-                      <Map className="h-5 w-5 text-[#3B38A0]" />
-                      <span className="font-semibold text-[#1A2A80]">Interactive Location Map</span>
+                      <Map className="h-5 w-5" style={{ color: colors.primary[600] }} />
+                      <span className="font-semibold" style={{ color: colors.primary[700] }}>Interactive Location Map</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
@@ -398,7 +406,12 @@ const AddIssueReportPage = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => setIsMapInteractive(!isMapInteractive)}
-                        className={`border-[#B2B0E8] ${isMapInteractive ? 'bg-[#B2B0E8] text-white' : 'text-[#3B38A0]'}`}
+                        className={`transition-all duration-200`}
+                        style={{
+                          borderColor: colors.primary[300],
+                          backgroundColor: isMapInteractive ? colors.primary[300] : 'transparent',
+                          color: isMapInteractive ? 'white' : colors.primary[600]
+                        }}
                       >
                         {isMapInteractive ? <Eye className="h-4 w-4 mr-1" /> : <EyeOff className="h-4 w-4 mr-1" />}
                         {isMapInteractive ? 'Interactive' : 'View Only'}
@@ -408,7 +421,19 @@ const AddIssueReportPage = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => setShowMap(!showMap)}
-                        className="border-[#B2B0E8] text-[#3B38A0]"
+                        className="transition-all duration-200"
+                        style={{
+                          borderColor: colors.primary[300],
+                          color: colors.primary[600]
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = colors.primary[300];
+                          e.target.style.color = 'white';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'transparent';
+                          e.target.style.color = colors.primary[600];
+                        }}
                       >
                         {showMap ? 'Hide Map' : 'Show Map'}
                       </Button>
@@ -498,8 +523,8 @@ const AddIssueReportPage = () => {
                           placeholder="e.g., 40.7128"
                           type="number"
                           step="any"
-                          className={`border-2 transition-all duration-200 focus:ring-2 focus:ring-[#B2B0E8] ${
-                            errors.location ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#7A85C1]'
+                          className={`border-2 transition-all duration-200 focus:ring-2 focus:ring-[#dcfce7] ${
+                            errors.location ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#dcfce7]'
                           }`}
                         />
                       </div>
@@ -514,8 +539,8 @@ const AddIssueReportPage = () => {
                           placeholder="e.g., -74.0060"
                           type="number"
                           step="any"
-                          className={`border-2 transition-all duration-200 focus:ring-2 focus:ring-[#B2B0E8] ${
-                            errors.location ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#7A85C1]'
+                          className={`border-2 transition-all duration-200 focus:ring-2 focus:ring-[#dcfce7] ${
+                            errors.location ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#dcfce7]'
                           }`}
                         />
                       </div>
@@ -530,7 +555,7 @@ const AddIssueReportPage = () => {
                         value={formData.address}
                         onChange={handleInputChange}
                         placeholder="e.g., 123 Main St, City Park, Near the library..."
-                        className="border-2 border-gray-200 focus:border-[#7A85C1] focus:ring-2 focus:ring-[#B2B0E8]"
+                        className="border-2 border-gray-200 focus:border-[#dcfce7] focus:ring-2 focus:ring-[#dcfce7]"
                       />
                     </div>
 
@@ -561,7 +586,7 @@ const AddIssueReportPage = () => {
             <div className="lg:order-1">
               <Card className="bg-white/95 backdrop-blur-sm shadow-xl border-0">
                 <CardHeader className="border-b border-gray-200">
-                  <CardTitle className="text-2xl font-bold text-[#1A2A80]">Issue Details</CardTitle>
+                  <CardTitle className="text-2xl font-bold text-[#059669]">Issue Details</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
                   <form onSubmit={handleSubmit} className="space-y-6">
@@ -574,7 +599,7 @@ const AddIssueReportPage = () => {
 
                     {/* Title */}
                     <div className="space-y-2">
-                      <label className="block text-sm font-bold text-[#1A2A80]">
+                      <label className="block text-sm font-bold text-[#059669]">
                         Issue Title *
                       </label>
                       <Input
@@ -582,8 +607,8 @@ const AddIssueReportPage = () => {
                         value={formData.title}
                         onChange={handleInputChange}
                         placeholder="Brief, descriptive title for the issue"
-                        className={`border-2 transition-all duration-200 focus:ring-2 focus:ring-[#B2B0E8] ${
-                          errors.title ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#7A85C1]'
+                        className={`border-2 transition-all duration-200 focus:ring-2 focus:ring-[#dcfce7] ${
+                          errors.title ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#dcfce7]'
                         }`}
                       />
                       {errors.title && (
@@ -596,7 +621,7 @@ const AddIssueReportPage = () => {
 
                     {/* Description */}
                     <div className="space-y-2">
-                      <label className="block text-sm font-bold text-[#1A2A80]">
+                      <label className="block text-sm font-bold text-[#059669]">
                         Description *
                       </label>
                       <Textarea
@@ -605,8 +630,8 @@ const AddIssueReportPage = () => {
                         onChange={handleInputChange}
                         placeholder="Provide detailed information about the issue..."
                         rows={4}
-                        className={`border-2 transition-all duration-200 focus:ring-2 focus:ring-[#B2B0E8] resize-none ${
-                          errors.description ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#7A85C1]'
+                        className={`border-2 transition-all duration-200 focus:ring-2 focus:ring-[#dcfce7] resize-none ${
+                          errors.description ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#dcfce7]'
                         }`}
                       />
                       {errors.description && (
@@ -619,7 +644,7 @@ const AddIssueReportPage = () => {
 
                     {/* Category */}
                     <div className="space-y-2">
-                      <label className="block text-sm font-bold text-[#1A2A80]">
+                      <label className="block text-sm font-bold text-[#059669]">
                         Category *
                       </label>
                       {isLoadingCategories ? (
@@ -632,8 +657,8 @@ const AddIssueReportPage = () => {
                           name="categoryId"
                           value={formData.categoryId}
                           onChange={handleInputChange}
-                          className={`w-full border-2 rounded-lg px-4 py-3 bg-white text-gray-900 transition-all duration-200 focus:ring-2 focus:ring-[#B2B0E8] ${
-                            errors.category ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#7A85C1]'
+                          className={`w-full border-2 rounded-lg px-4 py-3 bg-white text-gray-900 transition-all duration-200 focus:ring-2 focus:ring-[#dcfce7] ${
+                            errors.category ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#dcfce7]'
                           }`}
                         >
                           <option value="" className="text-gray-500">Select a category</option>
@@ -652,7 +677,7 @@ const AddIssueReportPage = () => {
 
                     {/* Zone */}
                     <div className="space-y-2">
-                      <label className="block text-sm font-bold text-[#1A2A80]">
+                      <label className="block text-sm font-bold text-[#059669]">
                         Zone *
                       </label>
                       {isLoadingZones ? (
@@ -665,8 +690,8 @@ const AddIssueReportPage = () => {
                           name="zoneId"
                           value={formData.zoneId}
                           onChange={handleInputChange}
-                          className={`w-full border-2 rounded-lg px-4 py-3 bg-white text-gray-900 transition-all duration-200 focus:ring-2 focus:ring-[#B2B0E8] ${
-                            errors.zone ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#7A85C1]'
+                          className={`w-full border-2 rounded-lg px-4 py-3 bg-white text-gray-900 transition-all duration-200 focus:ring-2 focus:ring-[#dcfce7] ${
+                            errors.zone ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#dcfce7]'
                           }`}
                         >
                           <option value="" className="text-gray-500">Select a zone</option>
@@ -685,19 +710,19 @@ const AddIssueReportPage = () => {
 
                     {/* Priority */}
                     <div className="space-y-3">
-                      <label className="block text-sm font-bold text-[#1A2A80]">
+                      <label className="block text-sm font-bold text-[#059669]">
                         Priority Level
                       </label>
                       <div className="space-y-2">
                         {priorities.map(priority => (
-                          <label key={priority.value} className="flex items-start space-x-3 cursor-pointer p-3 rounded-lg border-2 border-gray-200 hover:border-[#B2B0E8] transition-all duration-200">
+                          <label key={priority.value} className="flex items-start space-x-3 cursor-pointer p-3 rounded-lg border-2 border-gray-200 hover:border-[#dcfce7] transition-all duration-200">
                             <input
                               type="radio"
                               name="priority"
                               value={priority.value}
                               checked={formData.priority === priority.value}
                               onChange={handleInputChange}
-                              className="mt-1 h-4 w-4 text-[#7A85C1] focus:ring-[#B2B0E8]"
+                              className="mt-1 h-4 w-4 text-[#dcfce7] focus:ring-[#dcfce7]"
                             />
                             <div>
                               <div className={`font-semibold ${priority.color}`}>
@@ -714,12 +739,12 @@ const AddIssueReportPage = () => {
 
                     {/* Media Upload */}
                     <div className="space-y-4">
-                      <label className="block text-sm font-bold text-[#1A2A80]">
+                      <label className="block text-sm font-bold text-[]">
                         Photos or Videos (Optional)
                       </label>
                       
                       {mediaFiles.length === 0 ? (
-                        <Card className="border-2 border-dashed border-[#B2B0E8] hover:border-[#7A85C1] transition-all duration-200 bg-gradient-to-br from-[#B2B0E8]/5 to-[#7A85C1]/5">
+                        <Card className="border-2 border-dashed border-[#dcfce7] hover:border-[#dcfce7] transition-all duration-200 bg-gradient-to-br from-[#dcfce7]/5 to-[#dcfce7]/5">
                           <CardContent className="p-8 text-center">
                             <input
                               type="file"
@@ -730,10 +755,10 @@ const AddIssueReportPage = () => {
                               multiple
                             />
                             <label htmlFor="media-upload" className="cursor-pointer">
-                              <div className="mx-auto h-16 w-16 rounded-full bg-gradient-to-r from-[#B2B0E8] to-[#7A85C1] flex items-center justify-center mb-4">
+                              <div className="mx-auto h-16 w-16 rounded-full bg-gradient-to-r from-[#dcfce7] to-[#dcfce7] flex items-center justify-center mb-4">
                                 <Camera className="h-8 w-8 text-white" />
                               </div>
-                              <p className="text-lg font-semibold text-[#1A2A80] mb-2">
+                              <p className="text-lg font-semibold text-[#059669] mb-2">
                                 Upload Photos or Videos
                               </p>
                               <p className="text-sm text-gray-600">
@@ -745,7 +770,7 @@ const AddIssueReportPage = () => {
                       ) : (
                         <div className="space-y-3">
                           {mediaFiles.length < 5 && (
-                            <Card className="border-2 border-dashed border-[#B2B0E8] hover:border-[#7A85C1] transition-all duration-200">
+                            <Card className="border-2 border-dashed border-[#dcfce7] hover:border-[#dcfce7] transition-all duration-200">
                               <CardContent className="p-4 text-center">
                                 <input
                                   type="file"
@@ -756,8 +781,8 @@ const AddIssueReportPage = () => {
                                   multiple
                                 />
                                 <label htmlFor="media-upload-more" className="cursor-pointer flex items-center justify-center space-x-2">
-                                  <Upload className="h-5 w-5 text-[#3B38A0]" />
-                                  <span className="text-sm font-medium text-[#3B38A0]">
+                                  <Upload className="h-5 w-5 text-[#059669]" />
+                                  <span className="text-sm font-medium text-[#059669]">
                                     Add more files ({mediaFiles.length}/5)
                                   </span>
                                 </label>
@@ -778,7 +803,7 @@ const AddIssueReportPage = () => {
                                           className="h-12 w-12 object-cover rounded border"
                                         />
                                       ) : (
-                                        <div className="h-12 w-12 bg-gradient-to-br from-[#B2B0E8] to-[#7A85C1] rounded flex items-center justify-center">
+                                        <div className="h-12 w-12 bg-gradient-to-br from-[#dcfce7] to-[#dcfce7] rounded flex items-center justify-center">
                                           {preview.type === 'image' ? (
                                             <FileImage className="h-6 w-6 text-white" />
                                           ) : (
@@ -824,7 +849,7 @@ const AddIssueReportPage = () => {
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full py-3 bg-gradient-to-r from-[#B2B0E8] to-[#7A85C1] border-0 hover:from-[#7A85C1] hover:to-[#3B38A0] text-white font-bold shadow-xl transition-all duration-200 transform hover:scale-105"
+                      className="w-full py-3 bg-gradient-to-r from-[#dcfce7] to-[#dcfce7] border-0 hover:from-[#dcfce7] hover:to-[#3B38A0] text-white font-bold shadow-xl transition-all duration-200 transform hover:scale-105"
                       style={{ boxShadow: '0 8px 25px rgba(178, 176, 232, 0.4)' }}
                     >
                       {isSubmitting ? (

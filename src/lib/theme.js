@@ -2,17 +2,18 @@
 export const colors = {
   // Primary brand colors
   primary: {
-    50: '#f8f9fa',
-    100: '#e9ecef',
-    200: '#B2B0E8',
-    300: '#7A85C1',
-    400: '#3B38A0',
-    500: '#1A2A80',
-    600: '#152260',
-    700: '#101b4d',
-    800: '#0c143a',
-    900: '#080d26',
+    50: '#f0fdf4',
+    100: '#dcfce7',
+    200: '#a7f3d0',
+    300: '#6ee7b7',
+    400: '#34d399',
+    500: '#10b981',
+    600: '#059669',
+    700: '#047857',
+    800: '#065f46',
+    900: '#064e3b',
   },
+
   
   // Semantic colors
   semantic: {
@@ -24,12 +25,12 @@ export const colors = {
   
   // Gradient definitions
   gradients: {
-    primary: 'linear-gradient(135deg, #B2B0E8 0%, #7A85C1 100%)',
-    primaryReverse: 'linear-gradient(135deg, #7A85C1 0%, #3B38A0 100%)',
-    secondary: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-    button: 'linear-gradient(135deg, #3B38A0 0%, #1A2A80 50%, #152260 100%)',
-    buttonPrimary: 'linear-gradient(135deg, #7A85C1 0%, #3B38A0 50%, #1A2A80 100%)',
-    buttonHover: 'linear-gradient(135deg, #1A2A80 0%, #3B38A0 100%)',
+    primary: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+    primaryReverse: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+    secondary: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+    button: 'linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)',
+    buttonPrimary: 'linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%)',
+    buttonHover: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
     buttonSuccess: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
     buttonWarning: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
     buttonDanger: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
@@ -134,7 +135,7 @@ export const componentColors = {
     textSecondary: 'rgba(255, 255, 255, 0.9)',
     activeTab: {
       background: '#ffffff',
-      text: colors.primary[400],
+      text: colors.primary[600],
     },
     hover: 'rgba(255, 255, 255, 0.2)',
   },
@@ -154,7 +155,7 @@ export const componentColors = {
     secondary: {
       background: 'transparent',
       border: colors.primary[300],
-      text: colors.primary[400],
+      text: colors.primary[600],
       backgroundHover: colors.primary[300],
       textHover: '#ffffff',
     },
@@ -167,9 +168,9 @@ export const componentColors = {
       shadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
       itemHover: '#f9fafb',
       activeItem: {
-        background: 'rgba(178, 176, 232, 0.1)',
+        background: 'rgba(187, 247, 208, 0.1)',
         border: colors.primary[400],
-        text: colors.primary[400],
+        text: colors.primary[600],
       },
     },
   },

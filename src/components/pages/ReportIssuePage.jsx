@@ -124,7 +124,7 @@ const ReportIssuePage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Reporting Tips */}
             <div>
-              <h2 className="text-2xl font-bold text-[#1A2A80] mb-6">
+              <h2 className="text-2xl font-bold mb-6" style={{ color: colors.primary[700] }}>
                 Reporting Tips
               </h2>
               <div className="space-y-6">
@@ -135,12 +135,12 @@ const ReportIssuePage = () => {
                       <CardContent className="p-6">
                         <div className="flex items-start space-x-4">
                           <div className="p-3 rounded-2xl shadow-lg" style={{
-                            background: 'linear-gradient(135deg, #7A85C1 0%, #3B38A0 100%)'
+                            background: colors.gradients.button
                           }}>
                             <Icon className="h-6 w-6 text-white" />
                           </div>
                           <div>
-                            <h3 className="font-semibold text-[#1A2A80] mb-2">
+                            <h3 className="font-semibold mb-2" style={{ color: colors.primary[700] }}>
                               {tip.title}
                             </h3>
                             <p className="text-gray-600">
@@ -157,7 +157,7 @@ const ReportIssuePage = () => {
 
             {/* Issue Categories */}
             <div>
-              <h2 className="text-2xl font-bold text-[#1A2A80] mb-6">
+              <h2 className="text-2xl font-bold mb-6" style={{ color: colors.primary[700] }}>
                 Common Issue Types
               </h2>
               
@@ -209,7 +209,7 @@ const ReportIssuePage = () => {
 
           {/* Process Steps */}
           <div className="mt-16">
-            <h2 className="text-2xl font-bold text-[#1A2A80] text-center mb-8">
+            <h2 className="text-2xl font-bold text-center mb-8" style={{ color: colors.primary[700] }}>
               How It Works
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -238,11 +238,11 @@ const ReportIssuePage = () => {
                 <Card key={index} className="text-center shadow-lg border-0 bg-white/95 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
                   <CardContent className="p-6">
                     <div className="text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mx-auto mb-4 shadow-lg" style={{
-                      background: 'linear-gradient(135deg, #3B38A0 0%, #1A2A80 100%)'
+                      background: colors.gradients.button
                     }}>
                       {step.step}
                     </div>
-                    <h3 className="font-semibold text-[#1A2A80] mb-2">
+                    <h3 className="font-semibold mb-2" style={{ color: colors.primary[700] }}>
                       {step.title}
                     </h3>
                     <p className="text-gray-600 text-sm">

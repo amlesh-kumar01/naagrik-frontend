@@ -93,7 +93,7 @@ const HomePage = () => {
           label: 'Active Citizens', 
           value: statsData.total_citizens?.toLocaleString() || '0', 
           icon: Users, 
-          color: 'text-purple-600' 
+          color: 'text-green-600' 
         },
         { 
           label: 'Response Rate', 
@@ -107,7 +107,7 @@ const HomePage = () => {
       setStats([
         { label: 'Issues Reported', value: 'N/A', icon: AlertTriangle, color: 'text-blue-600' },
         { label: 'Issues Resolved', value: 'N/A', icon: CheckCircle, color: 'text-green-600' },
-        { label: 'Active Citizens', value: 'N/A', icon: Users, color: 'text-purple-600' },
+        { label: 'Active Citizens', value: 'N/A', icon: Users, color: 'text-green-600' },
         { label: 'Response Rate', value: 'N/A', icon: TrendingUp, color: 'text-orange-600' },
       ]);
     }
@@ -116,7 +116,7 @@ const HomePage = () => {
   const staticStats = [
     { label: 'Issues Reported', value: '2,847', icon: AlertTriangle, color: 'text-blue-600' },
     { label: 'Issues Resolved', value: '2,123', icon: CheckCircle, color: 'text-green-600' },
-    { label: 'Active Citizens', value: '1,562', icon: Users, color: 'text-purple-600' },
+    { label: 'Active Citizens', value: '1,562', icon: Users, color: 'text-green-600' },
     { label: 'Response Rate', value: '94%', icon: TrendingUp, color: 'text-orange-600' },
   ];
 
@@ -227,11 +227,11 @@ const HomePage = () => {
                 return (
                   <div key={index} className="text-center">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-lg" style={{ 
-                      background: 'linear-gradient(135deg, #B2B0E8 0%, #7A85C1 100%)' 
+                      background: colors.gradients.primary
                     }}>
                       <Icon className="h-8 w-8 text-white" />
                     </div>
-                    <div className="text-3xl font-bold text-[#1A2A80] mb-1">{stat.value}</div>
+                    <div className="text-3xl font-bold mb-1" style={{ color: colors.primary[700] }}>{stat.value}</div>
                     <div className="text-sm text-gray-600 font-medium">{stat.label}</div>
                   </div>
                 );
@@ -245,7 +245,7 @@ const HomePage = () => {
       <section className="py-16" style={{ background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-[#1A2A80] mb-4">
+            <h2 className="text-3xl font-bold mb-4" style={{ color: colors.primary[700] }}>
               How Naagrik Works
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -261,11 +261,11 @@ const HomePage = () => {
                 <Card key={index} className="hover:shadow-xl transition-all duration-300 transform hover:scale-105 bg-white/95 backdrop-blur-sm border-0 shadow-lg">
                   <CardHeader className="text-center">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-lg" style={{
-                      background: 'linear-gradient(135deg, #7A85C1 0%, #3B38A0 100%)'
+                      background: colors.gradients.button
                     }}>
                       <Icon className="h-8 w-8 text-white" />
                     </div>
-                    <CardTitle className="text-xl text-[#1A2A80]">{feature.title}</CardTitle>
+                    <CardTitle className="text-xl" style={{ color: colors.primary[700] }}>{feature.title}</CardTitle>
                   </CardHeader>
                   <CardContent className="text-center">
                     <CardDescription className="mb-4 text-gray-600">
@@ -293,11 +293,23 @@ const HomePage = () => {
         <section className="py-16 bg-white/95 backdrop-blur-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center mb-8">
-              <h2 className="text-3xl font-bold text-[#1A2A80]">Recent Issues</h2>
+              <h2 className="text-3xl font-bold" style={{ color: colors.primary[700] }}>Recent Issues</h2>
               <Link href="/issues">
                 <Button 
                   variant="outline" 
-                  className="border-[#7A85C1] text-[#3B38A0] hover:bg-[#7A85C1] hover:text-white transition-all duration-200"
+                  className="transition-all duration-200"
+                  style={{
+                    borderColor: colors.primary[400],
+                    color: colors.primary[600]
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = colors.primary[400];
+                    e.target.style.color = 'white';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = 'transparent';
+                    e.target.style.color = colors.primary[600];
+                  }}
                 >
                   View All Issues
                   <ArrowRight className="h-4 w-4 ml-2" />
@@ -315,7 +327,7 @@ const HomePage = () => {
                   <Card key={issue.id} className="hover:shadow-xl transition-all duration-300 transform hover:scale-105 bg-white/95 backdrop-blur-sm border-0 shadow-lg">
                     <CardHeader>
                       <div className="flex justify-between items-start">
-                        <CardTitle className="text-lg line-clamp-2 text-[#1A2A80]">{issue.title}</CardTitle>
+                        <CardTitle className="text-lg line-clamp-2" style={{ color: colors.primary[700] }}>{issue.title}</CardTitle>
                         <Badge className={getStatusColor(issue.status)}>
                           {issue.status.replace('_', ' ')}
                         </Badge>
@@ -324,15 +336,15 @@ const HomePage = () => {
                     <CardContent>
                       <div className="space-y-2 text-sm text-gray-600">
                         <div className="flex items-center">
-                          <AlertTriangle className="h-4 w-4 mr-2 text-[#7A85C1]" />
+                          <AlertTriangle className="h-4 w-4 mr-2" style={{ color: colors.primary[500] }} />
                           {issue.category}
                         </div>
                         <div className="flex items-center">
-                          <MapPin className="h-4 w-4 mr-2 text-[#7A85C1]" />
+                          <MapPin className="h-4 w-4 mr-2" style={{ color: colors.primary[500] }} />
                           {issue.location}
                         </div>
                         <div className="flex items-center">
-                          <Clock className="h-4 w-4 mr-2 text-[#7A85C1]" />
+                          <Clock className="h-4 w-4 mr-2" style={{ color: colors.primary[500] }} />
                           {issue.timeAgo}
                         </div>
                       </div>
@@ -340,7 +352,19 @@ const HomePage = () => {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="w-full mt-4 border-[#7A85C1] text-[#3B38A0] hover:bg-[#7A85C1] hover:text-white transition-all duration-200" 
+                          className="w-full mt-4 transition-all duration-200"
+                          style={{
+                            borderColor: colors.primary[400],
+                            color: colors.primary[600]
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = colors.primary[400];
+                            e.target.style.color = 'white';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = 'transparent';
+                            e.target.style.color = colors.primary[600];
+                          }}
                         >
                           View Details
                         </Button>
@@ -367,12 +391,12 @@ const HomePage = () => {
       )}
 
       {/* CTA Section */}
-      <section className="py-16 text-white" style={{ background: 'linear-gradient(135deg, #3B38A0 0%, #1A2A80 100%)' }}>
+      <section className="py-16 text-[#10b981]" style={{ background: '#f0fdf4' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold mb-4">
             Ready to Make a Difference?
           </h2>
-          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-[#10b981] mb-8 max-w-2xl mx-auto">
             Join thousands of citizens working together to improve their communities.
           </p>
           {isAuthenticated ? (

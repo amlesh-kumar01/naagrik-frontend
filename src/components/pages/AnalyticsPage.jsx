@@ -24,6 +24,7 @@ import {
   Clock,
   Star
 } from 'lucide-react';
+import { colors } from '../../lib/theme';
 
 const AnalyticsPage = () => {
   const { user, isInitialized, isLoading: authLoading } = useAuthStore();
@@ -87,7 +88,14 @@ const AnalyticsPage = () => {
             <Button
               variant="ghost"
               onClick={() => router.back()}
-              className="text-[#3B38A0] hover:bg-[#B2B0E8]/20"
+              className="transition-all duration-200"
+              style={{ color: colors.primary[600] }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = `${colors.primary[200]}33`;
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+              }}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Dashboard

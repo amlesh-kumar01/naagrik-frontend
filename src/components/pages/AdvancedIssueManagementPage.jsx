@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore, useIssuesStore, useZoneStore } from '../../store';
+import { colors } from '../../lib/theme';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -112,7 +113,7 @@ const AdvancedIssueManagementPage = () => {
 
   if (!isInitialized || authLoading) {
     return (
-      <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)' }}>
+      <div className="min-h-screen" style={{ background: colors.gradients.pageBackground }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <LoadingCard />
         </div>
@@ -215,7 +216,7 @@ const AdvancedIssueManagementPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)' }}>
+      <div className="min-h-screen" style={{ background: colors.gradients.pageBackground }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <LoadingCard />
         </div>
@@ -224,7 +225,7 @@ const AdvancedIssueManagementPage = () => {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)' }}>
+    <div className="min-h-screen" style={{ background: colors.gradients.pageBackground }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -232,7 +233,7 @@ const AdvancedIssueManagementPage = () => {
             <Button
               variant="ghost"
               onClick={() => router.back()}
-              className="text-[#3B38A0] hover:bg-[#B2B0E8]/20"
+              className={`text-[${colors.primary[600]}] hover:bg-[${colors.primary[100]}]/20`}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Dashboard
@@ -241,12 +242,12 @@ const AdvancedIssueManagementPage = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl" style={{
-                background: 'linear-gradient(135deg, #7A85C1 0%, #3B38A0 100%)'
+                background: colors.gradients.header
               }}>
                 <AlertTriangle className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-[#1A2A80]">Advanced Issue Management</h1>
+                <h1 className={`text-3xl font-bold text-[${colors.primary[800]}]`}>Advanced Issue Management</h1>
                 <p className="text-gray-600">Filter, analyze, and manage issues</p>
               </div>
             </div>
@@ -255,7 +256,7 @@ const AdvancedIssueManagementPage = () => {
               <Button
                 variant="outline"
                 onClick={() => setShowFilters(!showFilters)}
-                className="border-[#7A85C1] text-[#3B38A0] hover:bg-[#7A85C1] hover:text-white"
+                className={`border-[${colors.primary[400]}] text-[${colors.primary[600]}] hover:bg-[${colors.primary[500]}] hover:text-white`}
               >
                 <Filter className="h-4 w-4 mr-2" />
                 Filters
@@ -264,7 +265,7 @@ const AdvancedIssueManagementPage = () => {
               {selectedIssues.length > 0 && (
                 <Button
                   onClick={() => setShowBulkActions(true)}
-                  className="bg-gradient-to-r from-[#3B38A0] to-[#1A2A80] hover:from-[#1A2A80] hover:to-[#3B38A0] text-white"
+                  className={`bg-gradient-to-r from-[${colors.primary[600]}] to-[${colors.primary[700]}] hover:from-[${colors.primary[700]}] hover:to-[${colors.primary[600]}] text-white`}
                 >
                   <Settings className="h-4 w-4 mr-2" />
                   Bulk Actions
@@ -273,7 +274,7 @@ const AdvancedIssueManagementPage = () => {
               <Button
                 variant="outline"
                 onClick={loadIssues}
-                className="border-[#7A85C1] text-[#3B38A0] hover:bg-[#7A85C1] hover:text-white"
+                className={`border-[${colors.primary[400]}] text-[${colors.primary[600]}] hover:bg-[${colors.primary[500]}] hover:text-white`}
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Refresh

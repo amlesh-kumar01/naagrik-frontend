@@ -97,7 +97,7 @@ const RegisterForm = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" style={{
-      background: colors.gradients.primary
+      background: colors.primary[50]
     }}>
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
@@ -106,17 +106,17 @@ const RegisterForm = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
           </div>
-          <h2 className="text-3xl font-bold text-white mb-2">
+          <h2 className="text-3xl font-bold" style={{ color: colors.primary[500] }}>
             Join Naagrik
           </h2>
-          <p className="text-lg text-white/90">
+          <p className="text-lg" style={{ color: colors.primary[400] }}>
             Create your account and start making a difference in your community
           </p>
         </div>
 
         <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
           <CardHeader className="text-center pb-4">
-            <CardTitle className="text-2xl font-semibold text-[#1A2A80]">Create your account</CardTitle>
+            <CardTitle className="text-2xl font-semibold" style={{ color: colors.primary[500] }}>Create your account</CardTitle>
           </CardHeader>
           <CardContent className="p-8">
             <form className="space-y-6" onSubmit={handleSubmit}>
@@ -133,7 +133,7 @@ const RegisterForm = () => {
               )}
 
               <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-[#1A2A80] mb-2">
+                <label htmlFor="fullName" className="block text-sm font-medium" style={{ color: colors.primary[500] }} mb-2>
                   Full Name
                 </label>
                 <Input
@@ -144,7 +144,7 @@ const RegisterForm = () => {
                   value={formData.fullName}
                   onChange={handleChange}
                   placeholder="Enter your full name"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7A85C1] focus:border-[#7A85C1] transition-colors duration-200"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#dcfce7] focus:border-[#dcfce7] transition-colors duration-200"
                 />
                 {errors.fullName && (
                   <p className="mt-2 text-sm text-red-600">{errors.fullName}</p>
@@ -152,7 +152,7 @@ const RegisterForm = () => {
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-[#1A2A80] mb-2">
+                <label htmlFor="email" className="block text-sm font-medium" style={{ color: colors.primary[500] }} mb-2>
                   Email address
                 </label>
                 <Input
@@ -163,7 +163,7 @@ const RegisterForm = () => {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="Enter your email"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7A85C1] focus:border-[#7A85C1] transition-colors duration-200"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#dcfce7] focus:border-[#dcfce7] transition-colors duration-200"
                 />
                 {errors.email && (
                   <p className="mt-2 text-sm text-red-600">{errors.email}</p>
@@ -173,7 +173,7 @@ const RegisterForm = () => {
 
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-[#1A2A80] mb-2">
+                <label htmlFor="password" className="block text-sm font-medium" style={{ color: colors.primary[500] }} mb-2>
                   Password
                 </label>
                 <Input
@@ -184,7 +184,7 @@ const RegisterForm = () => {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Create a password"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7A85C1] focus:border-[#7A85C1] transition-colors duration-200"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#dcfce7] focus:border-[#dcfce7] transition-colors duration-200"
                 />
                 {errors.password && (
                   <p className="mt-2 text-sm text-red-600">{errors.password}</p>
@@ -195,7 +195,7 @@ const RegisterForm = () => {
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-[#1A2A80] mb-2">
+                <label htmlFor="confirmPassword" className="block text-sm font-medium" style={{ color: colors.primary[500] }} mb-2>
                   Confirm Password
                 </label>
                 <Input
@@ -206,7 +206,7 @@ const RegisterForm = () => {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="Confirm your password"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7A85C1] focus:border-[#7A85C1] transition-colors duration-200"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#dcfce7] focus:border-[#dcfce7] transition-colors duration-200"
                 />
                 {errors.confirmPassword && (
                   <p className="mt-2 text-sm text-red-600">{errors.confirmPassword}</p>
@@ -232,9 +232,9 @@ const RegisterForm = () => {
               <div className="text-center pt-4">
                 <p className="text-sm text-gray-600">
                   Already have an account?{' '}
-                  <Link 
-                    href="/login" 
-                    className="font-medium text-[#3B38A0] hover:text-[#1A2A80] transition-colors duration-200 hover:underline"
+                  <Link
+                    href="/login"
+                    className="font-medium  hover:text-colors.primary[400] transition-colors duration-200 hover:underline" style={{ color: colors.primary[500] }}
                   >
                     Sign in here
                   </Link>

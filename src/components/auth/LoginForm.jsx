@@ -82,7 +82,7 @@ const LoginForm = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" style={{
-      background: colors.gradients.primary
+      background: colors.primary[50]
     }}>
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
@@ -91,10 +91,10 @@ const LoginForm = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
           </div>
-          <h2 className="text-3xl font-bold text-white mb-2">
+          <h2 className="text-3xl font-bold" style={{ color: colors.primary[500] }}>
             Welcome Back
           </h2>
-          <p className="text-lg text-white/90">
+          <p className="text-lg" style={{ color: colors.primary[400] }}>
             Sign in to your Naagrik account
           </p>
         </div>
@@ -118,7 +118,7 @@ const LoginForm = () => {
               )}
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-[#1A2A80] mb-2">
+                <label htmlFor="email" className="block text-sm font-medium" style={{ color: colors.primary[500] }} mb-2>
                   Email address
                 </label>
                 <Input
@@ -129,12 +129,12 @@ const LoginForm = () => {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="Enter your email"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7A85C1] focus:border-[#7A85C1] transition-colors duration-200"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#dcfce7] focus:border-[#dcfce7] transition-colors duration-200" style={{ color: colors.primary[700] }}
                 />
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-[#1A2A80] mb-2">
+                <label htmlFor="password" className="block text-sm font-medium" style={{ color: colors.primary[500] }} mb-2>
                   Password
                 </label>
                 <Input
@@ -145,7 +145,7 @@ const LoginForm = () => {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Enter your password"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7A85C1] focus:border-[#7A85C1] transition-colors duration-200"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#dcfce7] focus:border-[#dcfce7] transition-colors duration-200"
                 />
               </div>
 
@@ -165,7 +165,7 @@ const LoginForm = () => {
                 </div>
 
                 <div className="text-sm">
-                  <Link href="#" className="font-medium text-[#3B38A0] hover:text-[#1A2A80] transition-colors duration-200">
+                  <Link href="#" className="font-medium transition-colors duration-200 hover:underline" style={{ color: colors.primary[500], ':hover': { color: colors.primary[400] } }}>
                     Forgot your password?
                   </Link>
                 </div>
@@ -190,9 +190,9 @@ const LoginForm = () => {
               <div className="text-center pt-4">
                 <p className="text-sm text-gray-600">
                   Don't have an account?{' '}
-                  <Link 
-                    href="/register" 
-                    className="font-medium text-[#3B38A0] hover:text-[#1A2A80] transition-colors duration-200 hover:underline"
+                  <Link
+                    href="/register"
+                    className="font-medium hover:text-[#1a29805e] transition-colors duration-200 hover:underline" style={{ color: colors.primary[500] }} 
                   >
                     Sign up here
                   </Link>
